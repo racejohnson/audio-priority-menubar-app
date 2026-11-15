@@ -64,14 +64,14 @@ svg.dj{display:inline-block;flex:none;vertical-align:middle}
   --mb-ink:rgba(0,0,0,.86); --mb-bg:rgba(255,255,255,.3);
   --p-bg:rgba(246,246,248,.78); --p-ink:#1d1d1f; --p-ink2:rgba(0,0,0,.5); --p-ink3:rgba(0,0,0,.3); --p-sep:rgba(0,0,0,.1);
   --p-fill:rgba(0,0,0,.045); --p-fill2:rgba(0,0,0,.08); --p-hover:rgba(0,0,0,.06); --p-rim:rgba(255,255,255,.75); --p-edge:rgba(0,0,0,.14);
-  --sys:#0a7aff; --low:#e8590c; --btn:#fff; --btn-line:rgba(0,0,0,.12); --tog-off:rgba(0,0,0,.14);
+  --sys:#0a7aff; --out:#2f6fe4; --in:#6a4fd8; --low:#e8590c; --btn:#fff; --btn-line:rgba(0,0,0,.12); --tog-off:rgba(0,0,0,.14);
   --wall:radial-gradient(120% 90% at 12% 10%,#bcd7f5 0%,transparent 55%),radial-gradient(90% 80% at 88% 18%,#e8c9ec 0%,transparent 60%),radial-gradient(110% 90% at 70% 100%,#a9d9d0 0%,transparent 60%),#dfe6f0;
   color:var(--p-ink);font-family:var(--font)}
 .stage[data-mac="dark"]{
   --mb-ink:rgba(255,255,255,.92); --mb-bg:rgba(0,0,0,.25);
   --p-bg:rgba(34,34,38,.76); --p-ink:#f2f2f7; --p-ink2:rgba(255,255,255,.55); --p-ink3:rgba(255,255,255,.3); --p-sep:rgba(255,255,255,.1);
   --p-fill:rgba(255,255,255,.06); --p-fill2:rgba(255,255,255,.1); --p-hover:rgba(255,255,255,.08); --p-rim:rgba(255,255,255,.14); --p-edge:rgba(0,0,0,.6);
-  --sys:#3b93ff; --low:#ff8a3d; --btn:rgba(255,255,255,.14); --btn-line:rgba(255,255,255,.1); --tog-off:rgba(255,255,255,.18);
+  --sys:#3b93ff; --out:#4b8dff; --in:#9479f0; --low:#ff8a3d; --btn:rgba(255,255,255,.14); --btn-line:rgba(255,255,255,.1); --tog-off:rgba(255,255,255,.18);
   --wall:radial-gradient(120% 90% at 12% 10%,#1d3a66 0%,transparent 55%),radial-gradient(90% 80% at 88% 18%,#4a2a5e 0%,transparent 60%),radial-gradient(110% 90% at 70% 100%,#0f4a4a 0%,transparent 60%),#10131c}
 .stage .wall{position:absolute;inset:0;background:var(--wall);z-index:-1}
 .menubar{height:24px;display:flex;align-items:center;padding:0 8px 0 14px;font-size:13px;color:var(--mb-ink);background:var(--mb-bg);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4)}
@@ -112,13 +112,14 @@ svg.dj{display:inline-block;flex:none;vertical-align:middle}
 .row .rank{width:12px;font-size:11px;color:var(--p-ink3);text-align:center;font-variant-numeric:tabular-nums;flex:none}
 .row .grip{position:absolute;left:5px;opacity:0;color:var(--p-ink3);display:grid;place-items:center;width:18px;height:18px}
 .row:hover .grip{opacity:1}.row:hover .rank{opacity:0}
-.row .gi{width:24px;height:20px;display:grid;place-items:center;flex:none}
+.row .gi{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none}
+.row.out-row{--role:var(--out)}.row.in-row{--role:var(--in)}
+.row.cur .gi{background:var(--role);color:#fff}
 .row .nm{flex:1;min-width:0}
 .row .nm b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row.cur .nm b{font-weight:600}
 .row .nm i{display:flex;gap:8px;font-style:normal;font-size:11px;color:var(--p-ink2);white-space:nowrap;overflow:hidden}
 .row.off .nm b,.row.off .gi{opacity:.4}
-.row .chk{color:var(--sys);display:grid;place-items:center;flex:none}
 .row.dragging{opacity:.35}
 .row.drop-above{box-shadow:inset 0 2px 0 var(--sys)}
 .row.drop-below{box-shadow:inset 0 -2px 0 var(--sys)}
@@ -182,9 +183,9 @@ table.map tr.custom td{background:color-mix(in srgb,var(--accent) 8%,transparent
 .lineup figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:5px}
 .lineup figcaption{font-family:var(--mono)}
 .lineup .hl figcaption{color:var(--accent);font-weight:600}
-.prow{margin-top:10px;border-radius:12px;padding:4px;width:280px;max-width:100%;font-size:13px;line-height:1.3;--sys:#0a7aff}
+.prow{margin-top:10px;border-radius:12px;padding:4px;width:280px;max-width:100%;font-size:13px;line-height:1.3;--in:#6a4fd8}
 .prow.l{background:#f1f1f3;color:#1d1d1f;--p-ink2:rgba(0,0,0,.5);--p-ink3:rgba(0,0,0,.3)}
-.prow.d{background:#2b2b2f;color:#f2f2f7;--p-ink2:rgba(255,255,255,.55);--p-ink3:rgba(255,255,255,.3);--sys:#3b93ff}
+.prow.d{background:#2b2b2f;color:#f2f2f7;--p-ink2:rgba(255,255,255,.55);--p-ink3:rgba(255,255,255,.3);--in:#9479f0}
 .ref{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 .ref img{width:132px;height:132px;border-radius:12px;background:#fff;display:block}
 
@@ -224,7 +225,7 @@ table.dec td:last-child{min-width:120px}
     <div class="controls">
       <div class="sw"><span>Mac appearance</span><div class="seg" id="macSeg"><button data-v="light" aria-pressed="true">Light</button><button data-v="dark">Dark</button></div></div>
       <div class="sw"><span>Capsule</span><div class="seg" id="capSeg"></div></div>
-      <div class="sw"><span>Input side</span><div class="seg" id="ruleSeg"><button data-v="mic" aria-pressed="true">Mic when shared</button><button data-v="device">Always the device</button></div></div>
+      <div class="sw"><span>Input side</span><div class="seg" id="ruleSeg"><button data-v="device" aria-pressed="true">Always the device</button><button data-v="mic">Mic when shared</button></div></div>
       <div class="sw"><span>DJI glyph</span><div class="seg" id="djiSeg"></div></div>
       <div class="sw"><span>Lists</span><div class="seg" id="listSeg"><button data-v="plain" aria-pressed="true">Plain</button><button data-v="inset">Inset</button></div></div>
     </div>
@@ -253,7 +254,7 @@ table.dec td:last-child{min-width:120px}
         </div>
         <div class="card small">
           <h4>What changed since round 1</h4>
-          <p>Panel: B · Quiet list only. No coloured badges; one system-blue check per list. <b>Inset</b> puts each list on a DayNight-style card.</p>
+          <p>Panel: B · Quiet list only. The device in use gets a filled badge, blue for output and violet for input. <b>Inset</b> puts each list on a DayNight-style card.</p>
           <p>Glyph: Capsule only, always two glyphs, so the status item never changes width.</p>
           <p>Symbols: real SF Symbols everywhere; the DJI glyph is the one custom drawing.</p>
         </div>
@@ -268,7 +269,7 @@ table.dec td:last-child{min-width:120px}
 
   <section id="capsule">
     <h2>The Capsule</h2>
-    <p class="lede">Output on the left, input on the right, in one template image (one ink, tinted by macOS). Three finishes, each shown at 3× and at real size in a light and dark menu bar beside real Wi-Fi, battery and Control Center symbols. With Auto off the capsule fills and the glyphs are cut out of it. The Input side switch above changes the right-hand glyph here too.</p>
+    <p class="lede">Output on the left, input on the right, in one template image (one ink, tinted by macOS). Three finishes (you picked Soft), each shown at 3× and at real size in a light and dark menu bar beside real Wi-Fi, battery and Control Center symbols. With Auto off the capsule fills and the glyphs are cut out of it. The Input side switch above changes the right-hand glyph here too.</p>
     <div class="grid" id="capCards"></div>
   </section>
 
@@ -574,7 +575,7 @@ const DEV = {
   iphone:     { name: "iPhone 17 Pro Microphone", role: "in", sym: "iphone", owner: "iphone", detail: "Continuity" },
 };
 const S = {
-  mac: "light", cap: "divided", rule: "mic", dji: "solid", list: "plain", open: true,
+  mac: "light", cap: "soft", rule: "device", dji: "clip", list: "plain", open: true,
   auto: true, login: true,
   conn: { airpods: false, studio: false, mbspk: true, dji: true, mbmic: true, iphone: true },
   connecting: null,
@@ -678,10 +679,9 @@ function row(id, group, rank) {
   else if (!on) detail = id === "dji" ? "Receiver unplugged" : "Not connected";
   else detail = esc(d.detail ?? "");
   if (d.bt && !d.follows) trail = connecting ? `<span class="spin"></span>` : on ? `<button class="pill ghost" data-bt="${id}" title="Disconnect ${esc(d.name)}">Disconnect</button>` : `<button class="pill" data-bt="${id}">Connect</button>`;
-  if (cur) trail = `<span class="chk">${sf("checkmark", "cap")}</span>` + trail;
-  return `<div class="row${cur ? " cur" : ""}${on ? "" : " off"}" tabindex="0" role="button" aria-pressed="${cur}" data-pick="${id}" draggable="true" data-drag="${id}" data-group="${group}" aria-label="${esc(d.name)}${cur ? ", in use" : ""}, rank ${rank}">
+  return `<div class="row ${role}-row${cur ? " cur" : ""}${on ? "" : " off"}" tabindex="0" role="button" aria-pressed="${cur}" data-pick="${id}" draggable="true" data-drag="${id}" data-group="${group}" aria-label="${esc(d.name)}${cur ? ", in use" : ""}, rank ${rank}">
     <span class="grip" aria-hidden="true">${sf("line.3.horizontal", "cap", 0.85)}</span><span class="rank">${rank}</span>
-    <span class="gi">${G(d.sym)}</span>
+    <span class="gi">${G(d.sym, "cap")}</span>
     <span class="nm"><b>${esc(d.name)}</b><i>${detail}</i></span>${trail}</div>`;
 }
 const rowsFor = (group, start = 1) => `<div class="rows" data-list="${group}">${S.order[group].map((id, i) => row(id, group, start + i)).join("")}</div>`;
@@ -792,7 +792,7 @@ segInit("djiSeg", (v) => { S.dji = v; render(); renderCapCards(); renderDji(); r
 segInit("listSeg", (v) => { S.list = v; render(); });
 
 // ---------------------------------------------------------------- capsule cards
-const REC_CAP = "divided";
+const REC_CAP = "soft";
 const neighbours = (g) => `${sf("sun.max.fill")}${g}${sf("wifi")}${sf("battery.100percent")}${sf("switch.2")}<span>9:41</span>`;
 const zoom = (svg, k) => svg.replace(/width="([\d.]+)" height="([\d.]+)"/, (m, w, h) => `width="${w * k}" height="${h * k}"`);
 function renderCapCards() {
@@ -800,7 +800,7 @@ function renderCapCards() {
     const gs = COMBOS.map((c) => ({ c, g: capsule(o.id, c.out, c.in[S.rule], { manual: !!c.manual, dji: S.dji }) }));
     const bar = (m, g) => `<span class="bar ${m}">${neighbours(g.svg)}</span>`;
     return `<div class="card${o.id === S.cap ? " picked" : ""}">
-      <h3>${o.name}${o.id === REC_CAP ? '<span class="rec">Recommended</span>' : ""}<span class="cost">${gs[0].g.width} pt wide</span></h3>
+      <h3>${o.name}${o.id === REC_CAP ? '<span class="rec">Your pick</span>' : ""}<span class="cost">${gs[0].g.width} pt wide</span></h3>
       <p class="small" style="margin:4px 0 0">${o.line}</p>
       <div class="gcombos">${gs.map(({ c, g }) => `<div class="gz">${zoom(g.svg, 3)}<span class="tiny">${esc(c.label)}</span></div>`).join("")}</div>
       <div class="bars"><div class="rowb">${gs.map(({ g }) => bar("l", g)).join("")}</div><div class="rowb">${gs.map(({ g }) => bar("d", g)).join("")}</div></div>
@@ -824,7 +824,6 @@ const MAP = [
   ["The mic of the device already shown as output; any unknown microphone", "mic"],
   ["Unknown output", "speaker.wave.2.fill"],
   ["Wireless Mic Rx (DJI Mic Mini)", "dji"],
-  ["Panel: device in use", "checkmark"],
   ["Panel: output level, input level", "speaker.wave.2.fill", "mic.fill"],
   ["Panel: drag handle", "line.3.horizontal"],
 ];
@@ -835,16 +834,16 @@ function renderMap() {
 }
 
 // ---------------------------------------------------------------- DJI cards
-const REC_DJI = "solid";
+const REC_DJI = "clip";
 function renderDji() {
   const builtins = ["airpods.pro", "hifispeaker.fill", "laptopcomputer", "mic"];
   $("#djiCards").innerHTML = DJI_OPTIONS.map((o) => {
     const mine = (k, small) => djiSVG(o.id, { size: 19 * k, small }).replace("<svg ", '<svg class="dj" ');
     const line = (k) => builtins.map((b) => `<figure>${sf(b, "row", k)}<figcaption>${b}</figcaption></figure>`).join("") + `<figure class="hl">${mine(k, false)}<figcaption>dji</figcaption></figure>`;
     const cap = (m, manual) => `<span class="bar ${m}">${neighbours(capsule(S.cap, "laptopcomputer", "dji", { manual, dji: o.id }).svg)}</span>`;
-    const pr = (m) => `<div class="prow ${m}"><div class="row cur"><span class="rank">1</span><span class="gi">${mine(1, false)}</span><span class="nm"><b>Wireless Mic Rx</b><i>DJI Mic Mini · USB</i></span><span class="chk">${sf("checkmark", "cap")}</span></div></div>`;
+    const pr = (m) => `<div class="prow ${m}"><div class="row cur in-row"><span class="rank">1</span><span class="gi">${djiSVG(o.id, { size: 15, small: true }).replace("<svg ", '<svg class="dj" ')}</span><span class="nm"><b>Wireless Mic Rx</b><i>DJI Mic Mini · USB</i></span></div><div class="row in-row"><span class="rank">2</span><span class="gi">${djiSVG(o.id, { size: 15, small: true }).replace("<svg ", '<svg class="dj" ')}</span><span class="nm"><b>Wireless Mic Rx</b><i>Not in use</i></span></div></div>`;
     return `<div class="card${o.id === S.dji ? " picked" : ""}">
-      <h3>${o.name}${o.id === REC_DJI ? '<span class="rec">Recommended</span>' : ""}</h3><p class="small" style="margin:4px 0 12px">${o.line}</p>
+      <h3>${o.name}${o.id === REC_DJI ? '<span class="rec">Your pick</span>' : ""}</h3><p class="small" style="margin:4px 0 12px">${o.line}</p>
       <div class="djibig"><figure><div class="grid18">${djiSVG(o.id, { size: 132, small: false, grid: true })}</div><figcaption>Regular cut, 18 pt grid</figcaption></figure>
         <figure><div class="grid18">${djiSVG(o.id, { size: 132, small: true, grid: true })}</div><figcaption>Small cut (capsule)</figcaption></figure></div>
       <div class="lineup">${line(1)}</div><div class="lineup">${line(2)}</div>
@@ -858,14 +857,14 @@ $("#djiCards").addEventListener("click", (e) => { const b = e.target.closest("[d
 $("#refImg").src = REFERENCE;
 
 // ---------------------------------------------------------------- icons
-const REC_ICON = "selector";
+const REC_ICON = "peaks";
 let famIcon = REC_ICON;
 const svgURL = (s) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
 function renderIcons() {
   $("#iconCards").innerHTML = ICON_OPTIONS.map((o) => {
     const big = svgURL(appIcon(o.id, "light")), dark = svgURL(appIcon(o.id, "dark")), tint = svgURL(appIcon(o.id, "tinted")), sm = svgURL(appIconSmall(o.id, "light"));
     return `<div class="card icard${o.id === famIcon ? " picked" : ""}">
-      <h3>${o.name}${o.id === REC_ICON ? '<span class="rec">Recommended</span>' : ""}</h3><p class="small" style="margin:4px 0 12px">${o.line}</p>
+      <h3>${o.name}${o.id === REC_ICON ? '<span class="rec">Your pick</span>' : ""}</h3><p class="small" style="margin:4px 0 12px">${o.line}</p>
       <div class="hero"><img src="${big}" width="200" height="200" alt="${o.name} icon"></div>
       <div class="sizes">
         <figure><img src="${big}" width="128" height="128" alt=""><figcaption>128</figcaption></figure>
@@ -893,11 +892,12 @@ const DEC = [
   ["Panel", "Settled: B · Quiet list", "", "Quiet list"],
   ["Menu-bar glyph", "Settled: Capsule, always two glyphs", "", "Capsule"],
   ["Name", "Settled for now: Audio Priority", "", "Audio Priority"],
-  ["Capsule finish", CAPSULE_STYLES.map((o) => o.name).join(" · "), "Divided", ""],
-  ["Input side of the capsule", "Mic when shared · Always the device", "Mic when shared", ""],
-  ["DJI Mic Mini glyph", DJI_OPTIONS.map((o) => o.name).join(" · "), "Solid", ""],
+  ["Capsule finish", "Settled: Soft (16% fill, solid when Auto is off)", "", "Soft"],
+  ["Input side of the capsule", "Settled: always the device that owns the mic", "", "Always the device"],
+  ["DJI Mic Mini glyph", "Settled: Solid + clip", "", "Solid + clip"],
+  ["Device in use", "Settled: filled badge, blue for output and violet for input, no check", "", "Filled badge"],
+  ["App icon", "Settled direction: Peaks; refine in Icon Composer at build time", "", "Peaks"],
   ["Lists in the panel", "Plain · Inset", "Plain", ""],
-  ["App icon", ICON_OPTIONS.map((o) => o.name).join(" · "), "Selector", ""],
 ];
 $("#decTable").innerHTML = `<tr><th>#</th><th>Decision</th><th>Options</th><th>Recommended</th><th>Race's choice</th></tr>` + DEC.map((d, i) => `<tr><td>${i + 1}</td><td>${d[0]}</td><td>${d[1]}</td><td><b>${d[2]}</b></td><td>${d[3]}</td></tr>`).join("");
 

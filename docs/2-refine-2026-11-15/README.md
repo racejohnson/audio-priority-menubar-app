@@ -15,6 +15,11 @@ Race's picks from round 1, refined. `index.html` is a self-contained, clickable 
 | Glyphs | macOS system symbols wherever one exists; one custom glyph, the DJI Mic Mini | Race, after round 1 |
 | DJI glyph | A single transmitter at every size, after Race's reference drawing (`source/assets/dji-reference.png`) | Race, 15 Nov 2026 |
 | Name | Audio Priority, for now | Race, 15 Nov 2026 |
+| Capsule finish | **Soft**: no outline, 16% fill, solid when Auto is off | Race, after round 2 |
+| Input side of the capsule | **Always the device** that owns the mic (`airpods.pro \| airpods.pro` when AirPods do both) | Race, after round 2 |
+| DJI glyph variant | **Solid + clip** | Race, after round 2 |
+| Device in use (panel) | **Filled badge**: the glyph in a filled circle, blue for output and violet for input; no check | Race, after round 2 |
+| App icon | **Peaks** (segmented stereo meter) | Race, after round 2 |
 
 ### Why a rebuild and not a fork
 
@@ -44,7 +49,7 @@ Rebuild: `swift docs/2-refine-2026-11-15/source/sf-export.swift` (only when the 
 
 ## 1. Panel: Quiet list
 
-Control Center-style sliders on top, each carrying the current device's glyph and name. Below, ranked rows with one system-blue check per list; no coloured badges. Click to use, drag (or Option-Up/Down) to re-rank, Connect/Disconnect on paired Bluetooth devices, AirPods bud and case battery, Auto Switch, Open at Login, Quit.
+Control Center-style sliders on top, each carrying the current device's glyph and name. Below, ranked rows; the device in use gets its glyph in a filled circle (output #2f6fe4, input #6a4fd8; dark #4b8dff, #9479f0), no check. Click to use, drag (or Option-Up/Down) to re-rank, Connect/Disconnect on paired Bluetooth devices, AirPods bud and case battery, Auto Switch, Open at Login, Quit.
 
 - **Plain (recommended).** Lists sit straight on the glass with hairlines between sections.
 - **Inset.** Each list on a DayNight-style card.
@@ -55,26 +60,26 @@ Output left, input right, one template image. With Auto off the capsule fills an
 
 | Finish | Width | What it is |
 |---|---|---|
-| **Divided** (recommended) | 48 pt | Outline with a hairline between the halves |
+| Divided | 48 pt | Outline with a hairline between the halves |
 | Clean | 45 pt | Outline only, halves 2 pt closer |
-| Soft | 48 pt | No outline, a 16% fill; goes solid in manual |
+| **Soft** (Race's pick) | 48 pt | No outline, a 16% fill; goes solid in manual |
 
 **Input side.** Two rules for the right-hand glyph:
 
-- **Mic when shared (recommended).** When one device does both jobs (AirPods out and AirPods mic; MacBook speakers and MacBook mic) the right side shows `mic`. Otherwise it shows the device that owns the mic. So `airpods.pro | mic` means the AirPods mic, and `airpods.pro | laptopcomputer` means AirPods out with the MacBook mic. No two setups look the same.
-- **Always the device.** The right side always shows the owning device, so AirPods for both reads `airpods.pro | airpods.pro`.
+- **Mic when shared.** When one device does both jobs (AirPods out and AirPods mic; MacBook speakers and MacBook mic) the right side shows `mic`. Otherwise it shows the device that owns the mic. So `airpods.pro | mic` means the AirPods mic, and `airpods.pro | laptopcomputer` means AirPods out with the MacBook mic. No two setups look the same.
+- **Always the device (Race's pick).** The right side always shows the owning device, so AirPods for both reads `airpods.pro | airpods.pro`.
 
 ## 3. System glyphs
 
-`laptopcomputer`, `display`, `airpods.pro`, `airpods`, `airpods.max`, `headphones`, `iphone`, `hifispeaker.fill`, `homepod.fill`, `tv`, `mic`, `speaker.wave.2.fill`; panel chrome `checkmark`, `mic.fill`, `line.3.horizontal`. The page has the full device-to-symbol table. All exist on macOS 27.2.
+`laptopcomputer`, `display`, `airpods.pro`, `airpods`, `airpods.max`, `headphones`, `iphone`, `hifispeaker.fill`, `homepod.fill`, `tv`, `mic`, `speaker.wave.2.fill`; panel chrome `mic.fill`, `line.3.horizontal`. The page has the full device-to-symbol table. All exist on macOS 27.2.
 
 ## 4. DJI Mic Mini glyph
 
 One transmitter, proportions measured from the front unit of Race's reference: corner radius 27% of the width, three slots centred 20% down. Two cuts each, as SF Symbols have: regular (16 pt and up) and small (wider slots, for the capsule).
 
-- **Solid (recommended).** Filled body, three slots cut out. Closest to the reference.
+- **Solid.** Filled body, three slots cut out. Closest to the reference.
 - **Outline.** The same body as a 1.4 pt outline with solid slots; matches `laptopcomputer`, `display` and `mic`.
-- **Solid + clip.** Solid, with a sliver of the back unit as the magnetic clip. Less like an app tile; busier at 12 pt.
+- **Solid + clip (Race's pick).** Solid, with a sliver of the back unit as the magnetic clip. Less like an app tile; busier at 12 pt.
 
 For the build: export the chosen SVG as a custom symbol (SF Symbols app template) into the asset catalog. Not checked against the physical transmitter.
 
@@ -84,21 +89,17 @@ Five fresh drawings with an audio-level feel, none the five-bar equalizer. Famil
 
 | Option | What it is |
 |---|---|
-| **Selector** (recommended) | A source-selector knob pointing at the lit top position: pick the first available |
+| Selector | A source-selector knob pointing at the lit top position: pick the first available |
 | Faders | Two channel strips, output blue and input ice |
 | Needle | A VU meter: lit scale, needle, hub |
 | Capsule | The menu-bar capsule, speaker left and mic right |
-| Peaks | A segmented stereo meter; closest in spirit to mateusbadalotti's, but its own drawing |
+| **Peaks** (Race's pick) | A segmented stereo meter; closest in spirit to mateusbadalotti's, but its own drawing |
 
 ## Open decisions
 
 | # | Decision | Options | Recommended | Race's choice |
 |---|---|---|---|---|
-| 1 | Capsule finish | Divided · Clean · Soft | **Divided** | |
-| 2 | Input side of the capsule | Mic when shared · Always the device | **Mic when shared** | |
-| 3 | DJI Mic Mini glyph | Solid · Outline · Solid + clip | **Solid** | |
-| 4 | Lists in the panel | Plain · Inset | **Plain** | |
-| 5 | App icon | Selector · Faders · Needle · Capsule · Peaks | **Selector** | |
+| 1 | Lists in the panel | Plain · Inset | **Plain** | |
 
 ## Still unknown
 
