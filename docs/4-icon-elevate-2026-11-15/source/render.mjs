@@ -22,8 +22,9 @@ fs.mkdirSync(out, { recursive: true });
 
 export async function loadOption(slug) {
   if (slug === "peaks") {
-    const r = (f) => fs.readFileSync(path.join(repo, "Icon", f), "utf8");
-    return { meta: { slug: "peaks", name: "Peaks (today)", idea: "The shipping icon: a segmented stereo meter on a deep blue tile." },
+    // The Peaks drawings as they shipped before this round, frozen here so the baseline survives the swap.
+    const r = (f) => fs.readFileSync(path.join(here, "assets", "peaks", f), "utf8");
+    return { meta: { slug: "peaks", name: "Peaks (before)", idea: "The shipping icon: a segmented stereo meter on a deep blue tile." },
       master: r("AppIcon.svg"), small: r("AppIcon-small.svg"), bleed: r("AppIcon-bleed.svg") };
   }
   const m = await import(pathToFileURL(path.join(here, "icons", `${slug}.mjs`)).href + `?t=${process.hrtime.bigint()}`);

@@ -1,5 +1,5 @@
-// Builds ../index.html (self-contained) and ../svg/ from icons/*.mjs, the shipping Peaks drawings in
-// Icon/, notes.json and template.html. The 16 and 32 px pixel views are rendered with rsvg-convert,
+// Builds ../index.html (self-contained) and ../svg/ from icons/*.mjs, the Peaks drawings as they shipped before
+// this round (assets/peaks/), notes.json and template.html. The 16 and 32 px pixel views are rendered with rsvg-convert,
 // so the page shows exactly what build-icon.sh would put in the .icns.
 // Run: node docs/4-icon-elevate-2026-11-15/source/build.mjs   (needs rsvg-convert)
 import fs from "node:fs";

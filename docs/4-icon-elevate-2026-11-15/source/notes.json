@@ -1,8 +1,20 @@
 {
-  "order": ["bold", "night", "blend", "daylight", "duo"],
-  "recommended": "bold",
-  "ranking": ["bold", "night", "blend", "daylight", "duo"],
-  "recommendation": "Bold: it is today’s Peaks with the fuss taken out and the glyph made big, so it keeps the icon you chose and finally reads at 16 px. If you want output and input to show as blue and violet, Night is the strongest of the colour takes.",
+  "order": [
+    "night",
+    "bold",
+    "blend",
+    "daylight",
+    "duo"
+  ],
+  "recommended": "night",
+  "ranking": [
+    "night",
+    "bold",
+    "blend",
+    "daylight",
+    "duo"
+  ],
+  "recommendation": "Race’s pick (15 Nov 2026): Night, with a fifth level added to the meter. Bright blue output, full, beside violet input at three of five on a black tile; the best of the five at 16 px.",
   "options": {
     "bold": {
       "tag": "Today’s, distilled",
@@ -10,8 +22,8 @@
       "verdict": "The closest to today’s icon, done better: calm and confident, and it sits well next to Tailscale. The cost: with no second colour it can read a little like a list icon, and output and input differ only by how full they are."
     },
     "night": {
-      "tag": "Colour on black",
-      "idea": "Peaks on a black tile: bright blue output, full, beside violet input at half, flat, with unlit segments as dim tints, as Tailscale shows its idle dots.",
+      "tag": "Colour on black · picked",
+      "idea": "Peaks on a black tile: five flat segments a side in bright blue output (full) beside violet input (three of five), unlit segments as dim tints, as Tailscale shows its idle dots.",
       "verdict": "The best at 16 px and the nearest to the Spotify and Tailscale bar: high contrast, and the full-versus-half shape is obvious at every size. The cost: it gives up Peaks’ blue tile, so it feels like a cousin of today’s icon rather than the same one."
     },
     "blend": {

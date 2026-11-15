@@ -44,7 +44,7 @@ Layout:
 | `Sources/AudioPriorityCore/` | No CoreAudio here. `SwitchEngine` decides what each role should be on; `PriorityStore` keeps the ranked lists, hidden devices and switches; `DeviceGlyph` maps a device to its symbol |
 | `Sources/AudioPriority/` | The app: `AudioSystem` (CoreAudio), `Bluetooth`, `AppModel`, the capsule (`StatusItemController`, `Glyphs`) and the panel (`PanelController`, `PanelView`) |
 | `Tests/AudioPriorityTests/` | The rules as tests: start here to see what the app promises |
-| `Icon/` | The Peaks app icon's drawings and build script |
+| `Icon/` | The app icon's drawings (Night, from round 4) and build script |
 | `docs/` | The design rounds that led here, each a clickable page |
 
 Settings live in the app's defaults (`defaults read com.racejohnson.audio-priority`). Deleting that domain resets the lists. If saved settings ever cannot be read, the app starts with fresh lists and keeps the unreadable copy under the `settings.unreadable` key.

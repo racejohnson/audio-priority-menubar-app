@@ -202,7 +202,7 @@ footer{padding:56px 0 72px;color:var(--ink-3);font-size:12.5px}
       </div>
     </div>
     <h1>Peaks, <span class="grad">simpler and bolder</span>.</h1>
-    <p class="lede">Five takes on today’s meter, held to the bar of Claude, Journal, Spotify, Time Machine and Tailscale: one big glyph, one or two colours, no fuss. Each is a shippable set (1024 master, 16/32 px cut, full-bleed art for macOS 26’s shape) that drops into <code>Icon/build-icon.sh</code> unchanged.</p>
+    <p class="lede">Five takes on the Peaks meter, held to the bar of Claude, Journal, Spotify, Time Machine and Tailscale: one big glyph, one or two colours, no fuss. Each is a shippable set (1024 master, 16/32 px cut, full-bleed art for macOS 26’s shape) that drops into <code>Icon/build-icon.sh</code> unchanged.</p>
     <div class="lineup" id="lineup"></div>
     <a class="today-chip" href="#today" id="todayChip"></a>
   </div>
@@ -238,10 +238,10 @@ tb.forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.t)));
 try { const t = localStorage.getItem("ap-r4-theme"); if (t) setTheme(t); } catch (e) {}
 
 // Hero lineup + toc
-$("#lineup").innerHTML = opts.map((o, i) => `<a class="lu" href="#${o.slug}"><img src="${o.uM}" alt="${esc(o.name)}"><div class="n"><span class="num">${pad(i)}</span>${esc(o.name)}${isRec(o) ? '<span class="rec">Pick</span>' : ""}</div><div class="k">${esc(o.tag)}</div></a>`).join("");
-$("#todayChip").innerHTML = `${ico(base.uM, 32)}<span>Today: <b>Peaks</b>, the baseline</span>`;
+$("#lineup").innerHTML = opts.map((o, i) => `<a class="lu" href="#${o.slug}"><img src="${o.uM}" alt="${esc(o.name)}"><div class="n"><span class="num">${pad(i)}</span>${esc(o.name)}${isRec(o) ? '<span class="rec">Picked</span>' : ""}</div><div class="k">${esc(o.tag)}</div></a>`).join("");
+$("#todayChip").innerHTML = `${ico(base.uM, 32)}<span>Before: <b>Peaks</b>, the baseline</span>`;
 $("#toc").innerHTML = opts.map((o, i) => `<a href="#${o.slug}">${ico(o.uM, 20)}${esc(o.name)}</a>`).join("")
-  + `<a class="t" href="#side">Side by side</a><a class="t" href="#today">Today</a><a class="t" href="#decide">Decision</a>`;
+  + `<a class="t" href="#side">Side by side</a><a class="t" href="#today">Before</a><a class="t" href="#decide">Decision</a>`;
 
 // Context scenes
 function dockScene(o, mode, label) {
@@ -262,7 +262,7 @@ function ladder(o, mode) {
 const main = $("#main");
 main.innerHTML = opts.map((o, i) => `
 <section id="${o.slug}">
-  <div class="sh"><span class="num">${pad(i)} / 05</span><h2>${esc(o.name)}</h2><span class="tag">${esc(o.tag)}</span>${isRec(o) ? '<span class="rec">Recommended</span>' : ""}</div>
+  <div class="sh"><span class="num">${pad(i)} / 05</span><h2>${esc(o.name)}</h2><span class="tag">${esc(o.tag)}</span>${isRec(o) ? '<span class="rec">Picked</span>' : ""}</div>
   <p class="idea">${esc(o.idea)}</p>
   <div class="og">
     <div class="stage" data-stage style="--d:4px">
@@ -308,15 +308,15 @@ main.insertAdjacentHTML("beforeend", `
   <div class="alldock"><div class="scene l" id="alldock"><span class="lbl">All five in one Dock</span><div class="dock">${opts.map((o) => `<div class="dk ours">${sys(o, 58, o.name)}</div>`).join("")}<div class="sep"></div>${FAMILY.map(([n, s]) => `<div class="dk"><img src="${s}" alt="${esc(n)}"></div>`).join("")}</div></div></div>
 </section>
 <section id="today">
-  <div class="sh"><span class="num">Baseline</span><h2>Peaks, today</h2><span class="tag">Shipping</span></div>
+  <div class="sh"><span class="num">Baseline</span><h2>Peaks, before</h2><span class="tag">Shipped until this round</span></div>
   <p class="idea">${esc(base.idea)} Clean and on-family, but the glyph is small in its tile and six thin rows turn to mush at 16 px. Everything above is measured against it.</p>
   <div class="ladders" style="margin:0">${ladder(base, "l")}${ladder(base, "d")}</div>
 </section>
 <section id="decide">
   <div class="sh"><span class="num">Decide</span><h2>The pick</h2></div>
   <div class="decide" style="margin-top:22px">
-    <div class="card"><h4>Recommendation</h4><p class="big-rec">${esc(NOTES.recommendation)}</p>
-      <ol class="rank">${NOTES.ranking.map((s, i) => { const o = opts.find((x) => x.slug === s); return o ? `<li><span class="num">${i + 1}</span>${ico(o.uM, 40)}<div><b>${esc(o.name)}</b><div class="tiny">${esc(o.tag)}</div></div>${isRec(o) ? '<span class="rec" style="margin-left:auto">Pick</span>' : ""}</li>` : ""; }).join("")}</ol></div>
+    <div class="card"><h4>Decision</h4><p class="big-rec">${esc(NOTES.recommendation)}</p>
+      <ol class="rank">${NOTES.ranking.map((s, i) => { const o = opts.find((x) => x.slug === s); return o ? `<li><span class="num">${i + 1}</span>${ico(o.uM, 40)}<div><b>${esc(o.name)}</b><div class="tiny">${esc(o.tag)}</div></div>${isRec(o) ? '<span class="rec" style="margin-left:auto">Picked</span>' : ""}</li>` : ""; }).join("")}</ol></div>
     <div class="card ship"><h4>Shipping the one you pick</h4><ol>
       <li>Copy <code>svg/&lt;slug&gt;/&lt;slug&gt;.svg</code>, <code>-small.svg</code> and <code>-bleed.svg</code> over <code>Icon/AppIcon.svg</code>, <code>AppIcon-small.svg</code> and <code>AppIcon-bleed.svg</code>.</li>
       <li>Run <code>make icon</code>, then <code>make install</code>.</li>

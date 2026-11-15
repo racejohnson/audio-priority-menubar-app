@@ -5,14 +5,14 @@ const slug = "night";
 export const meta = {
   slug,
   name: "Night",
-  idea: "Peaks on a black tile: four wide, flat, softly rounded meter segments a side instead of six thin glassy ones, filling most of the tile in bright blue (output, full) and violet (input, half), unlit input segments shown as dim violet like Tailscale's dots, and no glow or shine, so it reads at 16 px.",
+  idea: "Peaks on a black tile: five wide, flat, softly rounded meter segments a side instead of six thin glassy ones, filling most of the tile in bright blue (output, full) and violet (input, three of five), unlit input segments shown as dim violet like Tailscale's dots, and no glow or shine, so it reads at 16 px.",
 };
 
-// Geometry in 1024 space. Two columns, four rows, centred on 512.
-const ROWS = 4;
+// Geometry in 1024 space. Two columns, five rows, centred on 512.
+const ROWS = 5;
 const COL_W = 248, GAP_X = 64;
-const SEG_H = 100, GAP_Y = 56, RX = 38;
-const LEFT_LIT = 4, RIGHT_LIT = 2;
+const SEG_H = 84, GAP_Y = 44, RX = 32;
+const LEFT_LIT = 5, RIGHT_LIT = 3;
 
 const glyphW = COL_W * 2 + GAP_X;
 const glyphH = ROWS * SEG_H + (ROWS - 1) * GAP_Y;
@@ -53,7 +53,7 @@ const art = ``
 export function master() { return wrapMaster(slug, defs, art, { rimOpacity: 0.1 }); }
 export function bleed() { return wrapBleed(slug, defs, art); }
 
-// Small cut: 32 grid, three heavy rows a side, left full, right two lit.
+// Small cut: 32 grid, kept to three heavy rows a side (five would blur at 16 px), left full, right two lit.
 const S = { cw: 9, gx: 2, h: 4, gy: 2, rows: 3, rx: 1.5 };
 const sW = S.cw * 2 + S.gx, sH = S.rows * S.h + (S.rows - 1) * S.gy;
 const sx0 = 16 - sW / 2, sy0 = 16 - sH / 2;
