@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  macOS 26 or later &nbsp;·&nbsp; GPL-3.0
+  macOS 26 or later &nbsp;·&nbsp; Free and open source
 </p>
 
 ---
@@ -32,13 +32,15 @@ Audio Priority fixes the order once. It sits in your menu bar with two lists, on
 
 ## Install
 
-You need macOS 26 or later and [Xcode](https://apps.apple.com/app/xcode/id497799835) 26 or later (free from the App Store). In Terminal, from this folder, run:
+You need macOS 26 or later and [Xcode](https://apps.apple.com/app/xcode/id497799835) 26 or later (free from the App Store). In Terminal, run:
 
 ```bash
+git clone https://github.com/racejohnson/audio-priority-menubar-app.git
+cd audio-priority-menubar-app
 make install
 ```
 
-This builds the app, puts it in your **Applications** folder and opens it. To update later, run `make install` again.
+This builds the app, puts it in your **Applications** folder and opens it. To update later, run `git pull` and `make install` again.
 
 The first time it opens, the devices you're using go to the top of their lists, so nothing switches. **Open at Login** is on from the start.
 
@@ -114,7 +116,7 @@ Builds are signed ad hoc. **Open at Login** only works for the copy in Applicati
 
 Settings live in the app's defaults (`defaults read com.racejohnson.audio-priority`). If saved settings can't be read, the app starts with fresh lists and keeps the unreadable copy under the `settings.unreadable` key.
 
-Left out on purpose: profiles, a mute hotkey, Shortcuts, URL commands, notifications, Jabra support, an update checker. This is a private app for one Mac, with no update channel and no notarization.
+Left out on purpose: profiles, a mute hotkey, Shortcuts, URL commands, notifications, Jabra support, an update checker. It was built for one Mac: there is no update channel and no notarization.
 
 ## License
 
