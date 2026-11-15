@@ -24,9 +24,9 @@ Output is blue (#2f6fe4, dark #4b8dff), input is violet (#6a4fd8, dark #9479f0).
 |---|---|
 | Badge | Round 2: only the device in use gets a filled circle |
 | Circles | Every device in a grey circle; the one in use fills with colour, as Control Center lists Wi-Fi and Bluetooth |
-| **Tinted row** (recommended) | Circles, plus a wash of the list's colour across the row in use (13% light, 26% dark). How DayNight marks its active mode |
+| Tinted row | Circles, plus a wash of the list's colour across the row in use (13% light, 26% dark). How DayNight marks its active mode |
 | Tinted + check | Tinted row with a `checkmark` at the right edge |
-| Filled row | The whole row fills with colour and the text turns white, like a selected menu item |
+| **Filled row** (Race's pick) | The whole row fills with colour and the text turns white, like a selected menu item |
 
 ## 2. Drag handle
 
@@ -35,10 +35,10 @@ Option-Up/Down and Move Up / Move Down in the row's menu work with all of them.
 | Option | What it is |
 |---|---|
 | Hover, leading | Round 2: the rank number turns into `line.3.horizontal` under the pointer |
-| **Hover, trailing** (recommended) | `line.3.horizontal` at the right edge, only on the row under the pointer; the rank stays put |
+| Hover, trailing | `line.3.horizontal` at the right edge, only on the row under the pointer; the rank stays put |
 | Always, trailing | The same handle on every row, as in an iOS list in Edit mode |
 | Chevrons | `chevron.up.chevron.down` on hover, the mark on macOS pop-up buttons |
-| No handle | Nothing drawn; drag the row itself, as System Settings does |
+| **No handle** (Race's pick) | Nothing drawn; drag the row itself, as System Settings does |
 | Edit mode | An Edit button in each heading reveals iOS handles and red `minus.circle.fill` buttons to hide; Done puts them away. Rows drag only while editing |
 
 No system symbol exists for a dot-grid grabber (`circle.grid.2x3.fill` is missing on macOS 27.2), so none is offered.
@@ -52,15 +52,15 @@ A hidden device leaves its list and is never picked automatically. It keeps its 
 | Option | What it is |
 |---|---|
 | Right-click only | Right-click or Control-click a row: Use, Connect/Disconnect, Move Up, Move Down, Hide |
-| **⋯ on hover** (recommended) | An `ellipsis` button on the row under the pointer opens the same menu |
+| **⋯ on hover** (Race's pick) | An `ellipsis` button on the row under the pointer opens the same menu |
 | Eye on hover | An `eye.slash` button on the row under the pointer hides it in one click |
 
 **Where hidden devices go:**
 
 | Option | What it is |
 |---|---|
-| **Per list** (recommended) | Each list ends with an "N hidden" disclosure; open it for that list's hidden devices, dimmed, each with Show |
-| Footer link | The footer reads "1 output · 3 inputs · 1 hidden"; click the count and every hidden device appears in place |
+| Per list | Each list ends with an "N hidden" disclosure; open it for that list's hidden devices, dimmed, each with Show |
+| **Footer link** (Race's pick) | The footer reads "1 output · 3 inputs · 1 hidden"; click the count and every hidden device appears in place |
 | Hidden section | One collapsed "Hidden" heading under both lists holds every hidden device |
 
 ## 4. Polish
@@ -74,12 +74,13 @@ A hidden device leaves its list and is never picked automatically. It keeps its 
 - Peaks icon: a soft top-light on each lit segment, the input channel at four of six, a hairline rim on the tile.
 - DJI glyph and capsule are single settled drawings; the unused variants are gone from `art.mjs`.
 
-## Open decisions
+## Decisions
 
-| # | Decision | Options | Recommended | Race's choice |
-|---|---|---|---|---|
-| 1 | Selected state | Badge · Circles · Tinted row · Tinted + check · Filled row | **Tinted row** | |
-| 2 | Drag handle | Hover, leading · Hover, trailing · Always, trailing · Chevrons · No handle · Edit mode | **Hover, trailing** | |
-| 3 | Hide control | Right-click only · ⋯ on hover · Eye on hover | **⋯ on hover** | |
-| 4 | Hidden devices | Per list · Footer link · Hidden section | **Per list** | |
-| 5 | Lists in the panel | Plain · Inset | **Plain** | |
+| # | Decision | Race's choice (15 Nov 2026) |
+|---|---|---|
+| 1 | Selected state | **Filled row** |
+| 2 | Drag handle | **No handle**: drag the row itself |
+| 3 | Hide control | **⋯ on hover**, plus the right-click menu |
+| 4 | Hidden devices | **Footer link** |
+
+Still open: lists in the panel, Plain or Inset (recommended: Plain).

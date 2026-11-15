@@ -254,7 +254,7 @@ table.dec td:last-child{min-width:120px}
   <div class="top">
     <div>
       <h1>Audio Priority <span class="dim">· round 3, 15 Nov 2026</span></h1>
-      <p class="takeaway">The settled choices are locked in and polished. Three things to pick this round: how the device in use is marked, how rows are grabbed to re-rank them, and how devices are hidden and found again.</p>
+      <p class="takeaway">The settled choices are locked in and polished. Your round-3 picks are the defaults: Filled row, no drag handle, ⋯ on hover and the footer link. The other options stay on the page for comparison.</p>
     </div>
     <div class="sw"><span>Page</span><div class="seg" id="pageTheme"><button data-v="auto" aria-pressed="true">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button></div></div>
   </div>
@@ -504,16 +504,16 @@ segInit("pageTheme", applyTheme);
 const SEL = [
   { id: "badge", name: "Badge", line: "Round 2: only the device in use gets a filled circle. Everything else is a bare glyph." },
   { id: "cc", name: "Circles", line: "Every device sits in a grey circle and the one in use fills with colour, the way Control Center lists Wi-Fi networks and Bluetooth devices." },
-  { id: "tint", name: "Tinted row", rec: true, line: "Circles, plus a wash of the list's colour across the row in use. This is how DayNight marks its active mode." },
+  { id: "tint", name: "Tinted row", line: "Circles, plus a wash of the list's colour across the row in use. This is how DayNight marks its active mode." },
   { id: "tintcheck", name: "Tinted + check", line: "Tinted row with a check at the right edge. Two cues at once; the clearest before it gets loud." },
-  { id: "fill", name: "Filled row", line: "The whole row fills with colour and the text turns white, like a selected menu item. Unmissable, and the heaviest thing in the panel." },
+  { id: "fill", name: "Filled row", rec: true, line: "The whole row fills with colour and the text turns white, like a selected menu item. Unmissable, and the heaviest thing in the panel." },
 ];
 const GRAB = [
   { id: "lead", name: "Hover, leading", line: "Round 2: the rank number turns into the three-line handle (line.3.horizontal) under the pointer." },
-  { id: "trailhover", name: "Hover, trailing", rec: true, line: "The three-line handle at the right edge, only on the row under the pointer. The iOS handle with Mac manners; the rank number stays put." },
+  { id: "trailhover", name: "Hover, trailing", line: "The three-line handle at the right edge, only on the row under the pointer. The iOS handle with Mac manners; the rank number stays put." },
   { id: "trail", name: "Always, trailing", line: "The three-line handle at the right edge of every row, as in an iOS list in Edit mode. Always findable; adds a column of marks." },
   { id: "chev", name: "Chevrons", line: "chevron.up.chevron.down on hover, the mark macOS puts on pop-up buttons. Says 'moves up and down' more than 'grab me'." },
-  { id: "none", name: "No handle", line: "Nothing drawn. Drag the row itself, as System Settings does in its sortable lists. Cleanest; you have to know rows drag." },
+  { id: "none", name: "No handle", rec: true, line: "Nothing drawn. Drag the row itself, as System Settings does in its sortable lists. Cleanest; you have to know rows drag." },
   { id: "edit", name: "Edit mode", line: "An Edit button in each heading. Rows then show iOS handles and red minus buttons to hide, and Done puts them away. Nothing moves by accident." },
 ];
 const HIDE = [
@@ -522,8 +522,8 @@ const HIDE = [
   { id: "eye", name: "Eye on hover", line: "An eye.slash button on the row under the pointer hides it in one click. Fastest, and the easiest to hit by accident." },
 ];
 const HIDDEN = [
-  { id: "list", name: "Per list", rec: true, line: "Each list ends with a '1 hidden' line. Open it to see that list's hidden devices, dimmed, each with a Show button." },
-  { id: "footer", name: "Footer link", line: "The footer reads '1 output · 3 inputs · 1 hidden'. Click the count and every hidden device appears in place, dimmed." },
+  { id: "list", name: "Per list", line: "Each list ends with a '1 hidden' line. Open it to see that list's hidden devices, dimmed, each with a Show button." },
+  { id: "footer", name: "Footer link", rec: true, line: "The footer reads '1 output · 3 inputs · 1 hidden'. Click the count and every hidden device appears in place, dimmed." },
   { id: "section", name: "Hidden section", line: "One collapsed 'Hidden' heading under both lists holds every hidden device, outputs and inputs together." },
 ];
 const pickRec = (arr) => arr.find((o) => o.rec).id;
@@ -913,7 +913,7 @@ const R = {
   iphone: { id: "i", role: "in", name: "iPhone 17 Pro Microphone", sym: "iphone", rank: 0, on: true, hid: true, detail: "Hidden" },
 };
 const mini = (mode, o, inner) => `<div class="mini mac-${mode}" data-sel="${o.sel}" data-grab="${o.grab}">${inner}</div>`;
-const card = (key, arr, o, body) => `<div class="card${S[key] === o.id ? " picked" : ""}"><h3>${o.name}${o.rec ? '<span class="rec">Recommended</span>' : ""}</h3><p class="small" style="margin:4px 0 0">${o.line}</p>${body}<button class="pick" data-set="${key}:${o.id}">${S[key] === o.id ? "Shown in the prototype" : "Show in the prototype"}</button></div>`;
+const card = (key, arr, o, body) => `<div class="card${S[key] === o.id ? " picked" : ""}"><h3>${o.name}${o.rec ? '<span class="rec">Your pick</span>' : ""}</h3><p class="small" style="margin:4px 0 0">${o.line}</p>${body}<button class="pick" data-set="${key}:${o.id}">${S[key] === o.id ? "Shown in the prototype" : "Show in the prototype"}</button></div>`;
 function renderCards() {
   const base = opts(); base.editing = false;
   $("#selCards").innerHTML = SEL.map((o) => {
@@ -982,11 +982,11 @@ function renderSettled() {
 // ---------------------------------------------------------------- decisions
 const names = (arr) => arr.map((o) => o.name).join(" · "), recName = (arr) => arr.find((o) => o.rec).name;
 const DEC = [
-  ["Selected state", names(SEL), recName(SEL), ""],
-  ["Drag handle", names(GRAB), recName(GRAB), ""],
-  ["Hide control", names(HIDE), recName(HIDE), ""],
-  ["Hidden devices", names(HIDDEN), recName(HIDDEN), ""],
   ["Lists in the panel", "Plain · Inset", "Plain", ""],
+  ["Selected state", "Settled", "", recName(SEL)],
+  ["Drag handle", "Settled", "", recName(GRAB) + ": drag the row itself"],
+  ["Hide control", "Settled", "", recName(HIDE) + ", plus the right-click menu"],
+  ["Hidden devices", "Settled", "", recName(HIDDEN)],
   ["Fork or rebuild", "Settled", "", "Lean rebuild"],
   ["Panel", "Settled", "", "Quiet list"],
   ["Menu-bar glyph", "Settled", "", "Capsule, Soft, always the device"],
