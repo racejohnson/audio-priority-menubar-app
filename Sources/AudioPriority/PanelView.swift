@@ -54,9 +54,6 @@ extension Color {
         role == .output ? dynamic(light: 0x2F6FE4, dark: 0x4B8DFF) : dynamic(light: 0x6A4FD8, dark: 0x9479F0)
     }
 
-    /// The colour of text that sits on a `.primary` fill.
-    static let onPrimary = dynamic(light: 0xFFFFFF, dark: 0x000000)
-
     private static func dynamic(light: Int, dark: Int) -> Color {
         Color(nsColor: NSColor(name: nil) { appearance in
             let hex = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
@@ -185,14 +182,19 @@ private struct LevelSlider: View {
             let width = geometry.size.width * CGFloat(level ?? 0)
             ZStack(alignment: .leading) {
                 Capsule().fill(.primary.opacity(0.08))
-                label(device).foregroundStyle(.primary)
-                // The filled part, with the same label on top in the opposite
-                // colour, so the text stays readable across the edge.
+                // The label is drawn twice, each copy clipped to its own side of
+                // the edge, so the text stays readable across it and neither
+                // copy shows through the other.
+                label(device)
+                    .foregroundStyle(.primary)
+                    .mask(alignment: .trailing) { Rectangle().frame(width: max(geometry.size.width - width, 0)) }
+                // White in both appearances, as in Control Center. A plain
+                // colour, because `.primary` goes grey on glass.
                 Rectangle()
-                    .fill(.primary.opacity(0.92))
+                    .fill(Color.white.opacity(0.92))
                     .frame(width: width)
                 label(device)
-                    .foregroundStyle(Color.onPrimary)
+                    .foregroundStyle(Color.black)
                     .mask(alignment: .leading) { Rectangle().frame(width: width) }
             }
             .clipShape(Capsule())
@@ -341,6 +343,7 @@ private struct DeviceRow: View {
     var isLifted = false
 
     @State private var isHovering = false
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         let isCurrent = model.isCurrent(device)
@@ -378,7 +381,7 @@ private struct DeviceRow: View {
         .frame(height: Self.height)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(isCurrent ? AnyShapeStyle(Color.role(device.role)) : AnyShapeStyle(.primary.opacity(isHovering || isLifted ? 0.055 : 0)))
+                .fill(isCurrent ? AnyShapeStyle(Color.role(device.role)) : AnyShapeStyle(.primary.opacity(isHovering || isLifted || isFocused ? 0.055 : 0)))
                 .shadow(color: .black.opacity(isLifted ? 0.18 : 0), radius: 6, y: 2)
         )
         .contentShape(Rectangle())
@@ -386,6 +389,10 @@ private struct DeviceRow: View {
         .onTapGesture { if !isHidden { model.select(device) } }
         .contextMenu { DeviceMenu(model: model, device: device) }
         .focusable(!isHidden)
+        .focused($isFocused)
+        // No system focus ring: a click focuses the row, and the ring then
+        // reads as a stray border. A focused row takes the hover fill instead.
+        .focusEffectDisabled()
         .onKeyPress(keys: [.return, .space]) { _ in
             model.select(device)
             return .handled

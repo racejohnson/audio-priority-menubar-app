@@ -57,13 +57,14 @@ enum Glyphs {
         return image
     }
 
-    /// The menu-bar capsule, 48 × 18 pt: output on the left, input on the
+    /// The menu-bar capsule, 58 × 22 pt: output on the left, input on the
     /// right. Auto on: a soft 16% fill with solid glyphs. Auto off: the fill
     /// goes solid and the glyphs are cut out of it.
     static func capsule(output: GlyphKey, input: GlyphKey, isManual: Bool) -> NSImage {
-        let size = CGSize(width: 48, height: 18)
-        let slot: CGFloat = 17, padding: CGFloat = 4.5, middle: CGFloat = 5
-        let glyphs = [output, input].map { image($0, pointSize: 10, weight: .semibold) }
+        let size = CGSize(width: 58, height: 22)
+        let slot: CGFloat = 21, padding: CGFloat = 5.5, middle: CGFloat = 5
+        // The DJI glyph keeps its bolder menu-bar cut at this size.
+        let glyphs = [output, input].map { $0 == .djiMicMini ? djiMicMini(size: 18, small: true) : image($0, pointSize: 13, weight: .semibold) }
         let capsule = Bitmap.draw(width: size.width, height: size.height) { context in
             let shell = CGPath(roundedRect: CGRect(origin: .zero, size: size), cornerWidth: size.height / 2, cornerHeight: size.height / 2, transform: nil)
             context.setFillColor(CGColor(gray: 0, alpha: isManual ? 1 : 0.16))
