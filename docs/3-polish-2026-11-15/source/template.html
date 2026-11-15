@@ -110,7 +110,6 @@
 .pill{border:0;border-radius:980px;padding:2px 9px;font-size:11px;font-weight:550;cursor:pointer;background:var(--btn);box-shadow:0 0 0 .5px var(--btn-line),0 .5px 1.5px rgba(0,0,0,.12);color:var(--p-ink);flex:none}
 .pill.ghost{background:transparent;box-shadow:none;color:var(--p-ink2);display:none}
 .row:hover .pill.ghost,.pill.ghost:focus-visible{display:inline-block}
-.row:hover .nm i .bat+.bat{display:none}
 .spin{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--p-ink3);border-top-color:var(--p-ink);animation:sp .7s linear infinite;flex:none}
 @keyframes sp{to{transform:rotate(360deg)}}
 .trow{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;font-size:13px}
@@ -336,7 +335,7 @@ const S = {
   cur: { out: "mbspk", in: "dji" },
   pick: { out: null, in: null },
   vol: { out: 0.62, in: 0.78 },
-  bat: { l: 80, r: 81, c: 60 },
+  bat: { l: 80, r: 81 },
   menu: null,
 };
 const opts = () => ({ sel: S.sel, grab: S.grab, hideUI: S.hideUI, hiddenUI: S.hiddenUI, editing: S.editing });
@@ -445,8 +444,9 @@ function scenario(k) {
 // ---------------------------------------------------------------- rows
 const BAT = (v) => `<svg viewBox="0 0 13 9"><rect x=".5" y=".5" width="10.5" height="8" rx="2" fill="none" stroke="currentColor" opacity=".55"/><rect x="2" y="2" width="${(7.5 * v) / 100}" height="5" rx="1" fill="currentColor"/><path d="M12 3v3" stroke="currentColor" opacity=".55" stroke-linecap="round"/></svg>`;
 function batteryLine(b = S.bat) {
-  const low = (v) => (v <= 20 ? " low" : ""), buds = b.l === b.r ? `${b.l}%` : `L ${b.l}% R ${b.r}%`;
-  return `<span class="bat${low(Math.min(b.l, b.r))}">${BAT(Math.min(b.l, b.r))}Buds ${buds}</span><span class="bat${low(b.c)}">${BAT(b.c)}Case ${b.c}%</span>`;
+  // Left and right only. The case reports a level only while a bud sits in it, so it is left out.
+  const m = Math.min(b.l, b.r);
+  return `<span class="bat${m <= 20 ? " low" : ""}">${BAT(m)}L ${b.l}% R ${b.r}%</span>`;
 }
 /**
  * One row. `s` is what to show (id, role, name, sym, rank, cur, on, hid, hov, detail, bt, live, group);
@@ -691,7 +691,7 @@ segInit("hideSeg", (v) => setOpt("hideUI", v)); segInit("hiddenSeg", (v) => setO
 
 // Sample rows for the static minis.
 const R = {
-  airpods: { id: "a", role: "out", name: "Race’s AirPods 4", sym: "airpods.gen4", rank: 1, on: true, detail: batteryLine({ l: 80, r: 81, c: 60 }) },
+  airpods: { id: "a", role: "out", name: "Race’s AirPods 4", sym: "airpods.gen4", rank: 1, on: true, detail: batteryLine({ l: 80, r: 81 }) },
   studio: { id: "s", role: "out", name: "Studio Display Speakers", sym: "display", rank: 2, on: false, detail: "Not connected" },
   mac: { id: "m", role: "out", name: "MacBook Pro Speakers", sym: "laptopcomputer", rank: 3, on: true, detail: "Built-in" },
   dji: { id: "d", role: "in", name: "Wireless Mic Rx", sym: "dji", rank: 1, on: true, detail: "DJI Mic Mini · USB" },
