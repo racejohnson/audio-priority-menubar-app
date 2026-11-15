@@ -57,11 +57,11 @@ snapshot: app
 selftest: app
 	AUDIO_PRIORITY_DRY_RUN=1 "$(APP)/Contents/MacOS/AudioPriority" --selftest .build/snapshots
 
-# Redraws the README's pictures in docs/readme from made-up devices, so they
+# Redraws the README's pictures in docs from made-up devices, so they
 # do not depend on what is plugged in. Needs rsvg-convert for the app icon.
 readme: app
-	AUDIO_PRIORITY_DRY_RUN=1 "$(APP)/Contents/MacOS/AudioPriority" --readme docs/readme
-	rsvg-convert -w 256 -h 256 Icon/AppIcon.svg -o docs/readme/icon.png
+	AUDIO_PRIORITY_DRY_RUN=1 "$(APP)/Contents/MacOS/AudioPriority" --readme docs
+	rsvg-convert -w 256 -h 256 Icon/AppIcon.svg -o docs/icon.png
 
 icon:
 	Icon/build-icon.sh

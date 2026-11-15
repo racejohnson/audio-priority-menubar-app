@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/readme/icon.png" width="128" height="128" alt="Audio Priority app icon">
+  <img src="docs/icon.png" width="128" height="128" alt="Audio Priority app icon">
 </p>
 
 <h1 align="center">Audio Priority</h1>
@@ -19,7 +19,7 @@ Put in your AirPods and macOS moves your microphone to them too, so the call you
 Audio Priority fixes the order once. It sits in your menu bar with two lists, one for where sound comes out and one for your microphone. Rank your devices, and it switches to the first one that's connected and takes the microphone back whenever macOS or an app moves it.
 
 <p align="center">
-  <img src="docs/readme/panel.png" width="840" alt="The Audio Priority panel open below its menu-bar item, three times: AirPods in use with a DJI microphone held, the AirPods away with the MacBook speakers in use, and Auto Switch turned off in dark mode">
+  <img src="docs/panel.png" width="840" alt="The Audio Priority panel open below its menu-bar item, three times: AirPods in use with a DJI microphone held, the AirPods away with the MacBook speakers in use, and Auto Switch turned off in dark mode">
 </p>
 
 - **Your order.** Drag devices into the order you want. Headphones always rank above speakers.
@@ -55,7 +55,7 @@ Audio Priority has no Dock icon; it lives in your menu bar. Click the item to op
 - **Open at Login**: on by default.
 - **Quit**.
 
-The item shows <img src="docs/readme/capsule-auto.png" height="20" alt="a soft capsule holding an AirPods symbol and a microphone symbol"> while Auto Switch is on, and fills in <img src="docs/readme/capsule-manual.png" height="20" alt="a solid capsule with the same two symbols cut out of it"> when it's off.
+The item shows <img src="docs/capsule-auto.png" height="20" alt="a soft capsule holding an AirPods symbol and a microphone symbol"> while Auto Switch is on, and fills in <img src="docs/capsule-manual.png" height="20" alt="a solid capsule with the same two symbols cut out of it"> when it's off.
 
 From the keyboard: Tab moves between devices, Return uses one, and Option-Up and Option-Down change its rank. Esc closes the panel.
 
@@ -110,7 +110,7 @@ Builds are signed ad hoc. **Open at Login** only works for the copy in Applicati
 | `Sources/AudioPriority/` | The app: `AudioSystem` (CoreAudio), `Bluetooth`, `AppModel`, the menu-bar item (`StatusItemController`, `Glyphs`) and the panel (`PanelController`, `PanelView`) |
 | `Tests/AudioPriorityTests/` | The rules as tests: start here to see what the app promises |
 | `Icon/` | The app icon's drawings and build script |
-| `docs/` | The design rounds that led here, each a clickable page, and this page's pictures in `docs/readme/` |
+| `docs/` | This page's pictures, redrawn by `make readme` |
 
 Settings live in the app's defaults (`defaults read com.racejohnson.audio-priority`). If saved settings can't be read, the app starts with fresh lists and keeps the unreadable copy under the `settings.unreadable` key.
 
