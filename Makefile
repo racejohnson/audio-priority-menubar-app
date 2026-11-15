@@ -4,7 +4,7 @@ BUNDLE_ID := com.racejohnson.audio-priority
 APP := .build/$(NAME).app
 INSTALLED := /Applications/$(NAME).app
 
-.PHONY: all test app install run dry-run snapshot icon clean
+.PHONY: all test app install run dry-run snapshot selftest icon clean
 
 all: test app
 
@@ -48,6 +48,11 @@ dry-run: app
 # the real devices, without showing a window or switching anything.
 snapshot: app
 	AUDIO_PRIORITY_DRY_RUN=1 "$(APP)/Contents/MacOS/AudioPriority" --snapshot .build/snapshots
+
+# Opens the real panel and drives it with synthetic clicks (a row, a drag, the
+# slider), as a dry run, then reports. Keep your hands off for five seconds.
+selftest: app
+	AUDIO_PRIORITY_DRY_RUN=1 "$(APP)/Contents/MacOS/AudioPriority" --selftest .build/snapshots
 
 icon:
 	Icon/build-icon.sh

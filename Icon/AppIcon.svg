@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+<linearGradient id="i1t" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#2c62e0"/>
+<stop offset="1" stop-color="#0a1a52"/>
+</linearGradient>
+<linearGradient id="i1g" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#fff" stop-opacity=".38"/>
+<stop offset="1" stop-color="#fff" stop-opacity="0"/>
+</linearGradient>
+<clipPath id="i1c">
+<path d="M382.8,100 L641.2,100 C722.63,100 763.34,100 807.17,113.86 C855.03,131.28 892.72,168.97 910.14,216.83 C924,260.66 924,301.37 924,382.8 L924,641.2 C924,722.63 924,763.34 910.14,807.17 C892.72,855.03 855.03,892.72 807.17,910.14 C763.34,924 722.63,924 641.2,924 L382.8,924 C301.37,924 260.66,924 216.83,910.14 C168.97,892.72 131.28,855.03 113.86,807.17 C100,763.34 100,722.63 100,641.2 L100,382.8 C100,301.37 100,260.66 113.86,216.83 C131.28,168.97 168.97,131.28 216.83,113.86 C260.66,100 301.37,100 382.8,100 Z"/>
+</clipPath>
+<filter id="i1b" x="-100%" y="-100%" width="300%" height="300%">
+<feGaussianBlur stdDeviation="46"/>
+</filter>
+<filter id="i1s" x="-10%" y="-10%" width="120%" height="120%">
+<feGaussianBlur stdDeviation="14"/>
+</filter>
+<linearGradient id="i1h" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#fff" stop-opacity=".12"/>
+<stop offset=".45" stop-color="#fff" stop-opacity="0"/>
+</linearGradient>
+</defs>
+<path d="M382.8,100 L641.2,100 C722.63,100 763.34,100 807.17,113.86 C855.03,131.28 892.72,168.97 910.14,216.83 C924,260.66 924,301.37 924,382.8 L924,641.2 C924,722.63 924,763.34 910.14,807.17 C892.72,855.03 855.03,892.72 807.17,910.14 C763.34,924 722.63,924 641.2,924 L382.8,924 C301.37,924 260.66,924 216.83,910.14 C168.97,892.72 131.28,855.03 113.86,807.17 C100,763.34 100,722.63 100,641.2 L100,382.8 C100,301.37 100,260.66 113.86,216.83 C131.28,168.97 168.97,131.28 216.83,113.86 C260.66,100 301.37,100 382.8,100 Z" transform="translate(0,12)" fill="#000" opacity=".28" filter="url(#i1s)"/>
+<g clip-path="url(#i1c)">
+<rect x="100" y="100" width="824" height="824" fill="url(#i1t)"/>
+<g filter="url(#i1b)">
+<rect x="296" y="272" width="196" height="480" rx="30" fill="#4f9bff" opacity=".5"/>
+<rect x="532" y="440" width="196" height="312" rx="30" fill="#bcd9ff" opacity=".22"/>
+</g>
+<rect x="296" y="692" width="196" height="60" rx="21" fill="#2f74f0"/>
+<rect x="302" y="697" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="532" y="692" width="196" height="60" rx="21" fill="#eef6ff"/>
+<rect x="538" y="697" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="296" y="608" width="196" height="60" rx="21" fill="#4186fb"/>
+<rect x="302" y="613" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="532" y="608" width="196" height="60" rx="21" fill="#eef6ff"/>
+<rect x="538" y="613" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="296" y="524" width="196" height="60" rx="21" fill="#5b9dff"/>
+<rect x="302" y="529" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="532" y="524" width="196" height="60" rx="21" fill="#eef6ff"/>
+<rect x="538" y="529" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="296" y="440" width="196" height="60" rx="21" fill="#7db5ff"/>
+<rect x="302" y="445" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="532" y="440" width="196" height="60" rx="21" fill="#eef6ff"/>
+<rect x="538" y="445" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="296" y="356" width="196" height="60" rx="21" fill="#a6d0ff"/>
+<rect x="302" y="361" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="532" y="356" width="196" height="60" rx="21" fill="rgba(214,230,255,.22)"/>
+<rect x="296" y="272" width="196" height="60" rx="21" fill="#d8eaff"/>
+<rect x="302" y="277" width="184" height="26" rx="15" fill="url(#i1g)"/>
+<rect x="532" y="272" width="196" height="60" rx="21" fill="rgba(214,230,255,.22)"/>
+<rect x="100" y="100" width="824" height="824" fill="url(#i1h)"/>
+</g>
+<path d="M382.8,100 L641.2,100 C722.63,100 763.34,100 807.17,113.86 C855.03,131.28 892.72,168.97 910.14,216.83 C924,260.66 924,301.37 924,382.8 L924,641.2 C924,722.63 924,763.34 910.14,807.17 C892.72,855.03 855.03,892.72 807.17,910.14 C763.34,924 722.63,924 641.2,924 L382.8,924 C301.37,924 260.66,924 216.83,910.14 C168.97,892.72 131.28,855.03 113.86,807.17 C100,763.34 100,722.63 100,641.2 L100,382.8 C100,301.37 100,260.66 113.86,216.83 C131.28,168.97 168.97,131.28 216.83,113.86 C260.66,100 301.37,100 382.8,100 Z" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="3"/>
+</svg>

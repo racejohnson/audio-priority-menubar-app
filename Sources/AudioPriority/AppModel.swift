@@ -328,7 +328,7 @@ final class AppModel {
     }
 
     private func log(_ message: String) {
-        FileHandle.standardError.write(Data("Audio Priority: \(message)\n".utf8))
+        Log.write(message)
     }
 }
 

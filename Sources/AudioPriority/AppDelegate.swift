@@ -30,9 +30,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         let panel = PanelController(model: model)
-        statusItem = StatusItemController(model: model, panel: panel)
+        let statusItem = StatusItemController(model: model, panel: panel)
+        self.statusItem = statusItem
         self.panel = panel
         terminateOnSIGTERM()
+        // `--selftest <folder>` drives the real panel with synthetic clicks (dry run only) and quits.
+        if let flag = arguments.firstIndex(of: "--selftest"), arguments.indices.contains(flag + 1), let button = statusItem.button {
+            SelfTest.run(model: model, panel: panel, button: button, folder: URL(fileURLWithPath: arguments[flag + 1]))
+        }
     }
 
     /// `kill` and `make install` send SIGTERM; route it through the normal quit.

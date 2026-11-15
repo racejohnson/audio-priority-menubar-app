@@ -47,6 +47,9 @@ final class StatusItemController: NSObject {
         )
     }
 
+    /// The capsule's button, for the self-test to open the panel under.
+    var button: NSStatusBarButton? { item.button }
+
     @objc private func clicked(_ sender: NSStatusBarButton) {
         panel.toggle(below: sender)
     }
