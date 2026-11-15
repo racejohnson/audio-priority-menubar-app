@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio Priority Round 3</title>
+<meta name="description" content="Round 3 for Race's audio-priority menu-bar app: options for the selected state, the drag handle and hiding devices, with the settled choices polished.">
+<style>
+/*__BASE__*/
+.g2{grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}
+.note{font-size:12.5px;color:var(--ink-2);margin:10px 0 0}
+
+/* ---------- Mac appearance: one set of variables for the stage and the minis ---------- */
+.mac-l{
+  --mb-ink:rgba(0,0,0,.86); --mb-bg:rgba(255,255,255,.3);
+  --p-bg:rgba(244,244,246,.84); --p-solid:#f2f2f4; --p-ink:#1d1d1f; --p-ink2:rgba(0,0,0,.5); --p-ink3:rgba(0,0,0,.3); --p-sep:rgba(0,0,0,.1);
+  --p-fill:rgba(0,0,0,.045); --p-fill2:rgba(0,0,0,.075); --p-hover:rgba(0,0,0,.055); --p-rim:rgba(255,255,255,.75); --p-edge:rgba(0,0,0,.14);
+  --sys:#0a7aff; --out:#2f6fe4; --in:#6a4fd8; --tint:13%; --low:#e8590c; --btn:#fff; --btn-line:rgba(0,0,0,.12); --tog-off:rgba(0,0,0,.14);
+  color:var(--p-ink)}
+.mac-d{
+  --mb-ink:rgba(255,255,255,.92); --mb-bg:rgba(0,0,0,.25);
+  --p-bg:rgba(32,32,35,.82); --p-solid:#232326; --p-ink:#f2f2f7; --p-ink2:rgba(255,255,255,.55); --p-ink3:rgba(255,255,255,.3); --p-sep:rgba(255,255,255,.1);
+  --p-fill:rgba(255,255,255,.06); --p-fill2:rgba(255,255,255,.1); --p-hover:rgba(255,255,255,.07); --p-rim:rgba(255,255,255,.14); --p-edge:rgba(0,0,0,.6);
+  --sys:#3b93ff; --out:#4b8dff; --in:#9479f0; --tint:26%; --low:#ff8a3d; --btn:rgba(255,255,255,.14); --btn-line:rgba(255,255,255,.1); --tog-off:rgba(255,255,255,.18);
+  color:var(--p-ink)}
+
+/* ---------- stage ---------- */
+.proto{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+@media (max-width:960px){.proto{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;border-radius:14px;overflow:hidden;isolation:isolate;box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 18px 50px rgba(0,0,0,.12);font-family:var(--font)}
+.stage .wall{position:absolute;inset:0;z-index:-1;background:radial-gradient(120% 90% at 12% 10%,#bcd7f5 0%,transparent 55%),radial-gradient(90% 80% at 88% 18%,#e8c9ec 0%,transparent 60%),radial-gradient(110% 90% at 70% 100%,#a9d9d0 0%,transparent 60%),#dfe6f0}
+.stage.mac-d .wall{background:radial-gradient(120% 90% at 12% 10%,#1d3a66 0%,transparent 55%),radial-gradient(90% 80% at 88% 18%,#4a2a5e 0%,transparent 60%),radial-gradient(110% 90% at 70% 100%,#0f4a4a 0%,transparent 60%),#10131c}
+.menubar{height:24px;display:flex;align-items:center;padding:0 8px 0 14px;font-size:13px;color:var(--mb-ink);background:var(--mb-bg);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4)}
+.mb-left{display:flex;align-items:center;flex:1;min-width:0;overflow:hidden;white-space:nowrap}
+.mb-left span{padding:0 9px;font-weight:500}.mb-left span.app{font-weight:700}
+.mb-right{display:flex;align-items:center;gap:1px;flex:none}
+.mbi{height:22px;min-width:24px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;color:var(--mb-ink);border:0;background:transparent}
+.mbi svg{display:block}
+.mbi.ours{cursor:default;padding:0 6px}
+.mbi.ours[aria-expanded="true"]{background:rgba(127,127,127,.28)}
+.mbi.ours:focus-visible{outline:2px solid var(--sys);outline-offset:-1px}
+.clock{font-size:13px;font-weight:500;padding:0 4px 0 8px;white-space:nowrap}
+.desk{position:relative;min-height:690px}
+.panel{position:absolute;top:6px;width:312px;max-width:calc(100% - 16px);border-radius:22px;background:var(--p-bg);
+  backdrop-filter:blur(36px) saturate(1.9);-webkit-backdrop-filter:blur(36px) saturate(1.9);
+  box-shadow:inset 0 0 0 .5px var(--p-rim),0 0 0 .5px var(--p-edge),0 14px 44px rgba(0,0,0,.22),0 2px 8px rgba(0,0,0,.08);
+  font-size:13px;line-height:1.3;color:var(--p-ink);z-index:10;padding:10px;transition:opacity .14s,transform .16s}
+.panel[hidden]{display:block;visibility:hidden;opacity:0;transform:translateY(-4px) scale(.98);pointer-events:none}
+.tip{position:absolute;top:28px;font-size:11.5px;padding:3px 8px;border-radius:6px;background:var(--p-bg);box-shadow:0 0 0 .5px var(--p-edge),0 4px 14px rgba(0,0,0,.15);color:var(--p-ink);white-space:nowrap;z-index:12;pointer-events:none;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+
+/* ---------- panel pieces ---------- */
+.cc{display:flex;flex-direction:column;gap:8px;padding:2px 2px 6px}
+.ccs{position:relative;height:30px;border-radius:15px;background:var(--p-fill2);overflow:hidden}
+.ccs .fill{position:absolute;inset:0 auto 0 0;background:var(--p-ink);opacity:.92;border-radius:15px 0 0 15px}
+.mac-d .ccs .fill{background:#fff}
+.ccs .gl{position:absolute;left:8px;top:0;width:24px;height:30px;display:grid;place-items:center;color:#fff;mix-blend-mode:difference}
+.ccs input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0}
+.ccs .lbl{position:absolute;left:40px;right:38px;top:7.5px;font-size:11.5px;font-weight:500;color:#fff;mix-blend-mode:difference;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ccs .end{position:absolute;right:11px;top:0;height:30px;display:grid;place-items:center;color:#fff;mix-blend-mode:difference;opacity:.6}
+.ccs:focus-within{box-shadow:0 0 0 2px var(--sys)}
+.sec{font-size:12px;font-weight:600;color:var(--p-ink2);padding:8px 10px 3px;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.sec span{font-size:11px;font-weight:500;color:var(--p-ink3)}
+.edit{all:unset;font-size:11.5px;font-weight:500;color:var(--sys);cursor:pointer;padding:0 2px;border-radius:4px}
+.edit:focus-visible,.flink:focus-visible,.hdisc:focus-visible,.hbtn:focus-visible,.ebtn:focus-visible{outline:2px solid var(--sys);outline-offset:1px}
+.pcard{border-radius:14px;padding:2px 4px 6px;background:var(--p-fill);margin-bottom:8px}
+.rows{display:flex;flex-direction:column;gap:1px}
+.row{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:10px;cursor:default;user-select:none;-webkit-user-select:none;position:relative;min-height:38px;transition:background-color .15s}
+.row:hover,.row.hov{background:var(--p-hover)}
+.row:focus-visible{outline:2px solid var(--sys);outline-offset:-2px}
+.row.out-row{--role:var(--out)}.row.in-row{--role:var(--in)}
+.row .rank{width:12px;font-size:11px;color:var(--p-ink3);text-align:center;font-variant-numeric:tabular-nums;flex:none}
+.row .gi{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;transition:background-color .15s,color .15s}
+.row .nm{flex:1;min-width:0}
+.row .nm b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm i{display:flex;gap:8px;font-style:normal;font-size:11px;color:var(--p-ink2);white-space:nowrap;overflow:hidden}
+.row.off .nm b,.row.off .gi,.row.hid .nm,.row.hid .gi{opacity:.42}
+.row.dragging{opacity:.35}
+.row.drop-above{box-shadow:inset 0 2px 0 var(--role)}
+.row.drop-below{box-shadow:inset 0 -2px 0 var(--role)}
+/* selected state */
+.row.cur .nm b{font-weight:600}
+.row.cur .gi{background:var(--role);color:#fff}
+[data-sel="cc"] .row:not(.cur) .gi,[data-sel="tint"] .row:not(.cur) .gi,[data-sel="tintcheck"] .row:not(.cur) .gi,[data-sel="fill"] .row:not(.cur) .gi{background:var(--p-fill2)}
+[data-sel="tint"] .row.cur,[data-sel="tintcheck"] .row.cur{background:color-mix(in srgb,var(--role) var(--tint),transparent)}
+[data-sel="fill"] .row.cur{background:var(--role);color:#fff;--p-ink2:rgba(255,255,255,.8);--p-ink3:rgba(255,255,255,.62);--p-fill2:rgba(255,255,255,.2)}
+[data-sel="fill"] .row.cur .gi{background:rgba(255,255,255,.24)}
+.row .chk{color:var(--role);display:grid;place-items:center;flex:none;width:16px}
+/* handles */
+.grip{display:grid;place-items:center;flex:none;color:var(--p-ink3);width:16px;height:22px;cursor:grab;transition:opacity .12s}
+.nm~.grip,.nm~.hbtn,.nm~.chk{margin-left:-2px}
+.grip.lead{position:absolute;left:5px;opacity:0}
+.row:hover .grip.lead,.row.hov .grip.lead{opacity:1}
+.row:hover .rank.swap,.row.hov .rank.swap{opacity:0}
+.grip.onhover{opacity:0}
+.row:hover .grip.onhover,.row.hov .grip.onhover{opacity:1}
+[data-grab="none"] .row[draggable="true"]{cursor:grab}
+/* hide controls */
+.hbtn{all:unset;display:grid;place-items:center;width:20px;height:22px;border-radius:6px;color:var(--p-ink2);opacity:0;flex:none;cursor:pointer;transition:opacity .12s}
+.row:hover .hbtn,.row.hov .hbtn,.hbtn:focus-visible,.hbtn[aria-expanded="true"]{opacity:1}
+.hbtn:hover,.hbtn[aria-expanded="true"]{background:var(--p-fill2);color:var(--p-ink)}
+.ebtn{all:unset;display:grid;place-items:center;width:16px;height:22px;margin:0 -2px;flex:none;cursor:pointer;border-radius:50%}
+.ebtn.del{color:#ff3b30}.ebtn.add{color:#30b158}
+.hdisc{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:7px;width:100%;font-size:11.5px;color:var(--p-ink2);padding:5px 10px 5px 9px;border-radius:8px;cursor:pointer}
+.hdisc:hover{background:var(--p-hover);color:var(--p-ink)}
+.hdisc .cv{width:10px;display:grid;place-items:center}
+.flink{all:unset;cursor:pointer;color:var(--sys);border-radius:4px}
+.bat{display:inline-flex;align-items:center;gap:3px}
+.bat svg{width:13px;height:9px}
+.bat.low{color:var(--low)}
+.pill{border:0;border-radius:980px;padding:2px 9px;font-size:11px;font-weight:550;cursor:pointer;background:var(--btn);box-shadow:0 0 0 .5px var(--btn-line),0 .5px 1.5px rgba(0,0,0,.12);color:var(--p-ink);flex:none}
+.pill.ghost{background:transparent;box-shadow:none;color:var(--p-ink2);display:none}
+.row:hover .pill.ghost,.pill.ghost:focus-visible{display:inline-block}
+.row:hover .nm i .bat+.bat{display:none}
+.spin{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--p-ink3);border-top-color:var(--p-ink);animation:sp .7s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.trow{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;font-size:13px}
+.trow .hint{display:block;font-size:11px;color:var(--p-ink2)}
+.tog{width:30px;height:17px;border-radius:9px;background:var(--tog-off);position:relative;transition:background .18s;flex:none;border:0;cursor:pointer;padding:0}
+.tog::after{content:"";position:absolute;top:1.5px;left:1.5px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .18s}
+.tog[aria-checked="true"]{background:var(--sys)}.tog[aria-checked="true"]::after{transform:translateX(13px)}
+.tog:focus-visible{outline:2px solid var(--sys);outline-offset:2px}
+.psep{height:.5px;background:var(--p-sep);margin:6px 10px}
+.pfoot{display:flex;justify-content:space-between;align-items:center;padding:4px 10px 2px;font-size:11.5px;color:var(--p-ink2)}
+.quit{all:unset;cursor:default;color:var(--p-ink2)}.quit:hover{color:var(--p-ink)}
+.banner{margin:0 2px 8px;padding:7px 10px;border-radius:11px;background:var(--p-fill2);font-size:11.5px;color:var(--p-ink2)}
+/* context menu */
+.ctx{position:absolute;z-index:30;min-width:196px;padding:5px;border-radius:10px;background:var(--p-bg);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);
+  box-shadow:inset 0 0 0 .5px var(--p-rim),0 0 0 .5px var(--p-edge),0 10px 30px rgba(0,0,0,.25);font-size:13px;color:var(--p-ink)}
+.ctx.static{position:static;width:max-content;margin:6px 0 0 46px;backdrop-filter:none;background:var(--p-solid)}
+.ctx button{all:unset;display:block;box-sizing:border-box;width:100%;padding:3px 9px;border-radius:5px;cursor:default;white-space:nowrap}
+.ctx button:hover:not(:disabled),.ctx button:focus-visible,.ctx button.hot{background:var(--sys);color:#fff}
+.ctx button:disabled{color:var(--p-ink3)}
+.ctx hr{border:0;height:.5px;background:var(--p-sep);margin:4px 9px}
+
+.side .card{margin-bottom:12px}
+.side h4{margin:0 0 6px;font-size:13px}
+.side .small p{margin:0 0 6px}
+.sim{display:flex;flex-direction:column;gap:6px}
+.sim label{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.scen{display:flex;flex-wrap:wrap;gap:6px}
+.scen button{border:0;border-radius:980px;padding:5px 11px;font-size:12.5px;font-weight:500;cursor:pointer;background:var(--seg-bg)}
+.scen button:hover{box-shadow:0 0 0 1px var(--accent)}
+.log{font-size:12px;color:var(--ink-2);min-height:2.6em;margin-top:8px}
+
+/* ---------- option cards with a static mini panel ---------- */
+.mini{border-radius:14px;padding:5px;width:292px;max-width:100%;font-size:13px;line-height:1.3;background:var(--p-solid);box-shadow:0 0 0 .5px var(--p-edge);margin-top:10px}
+.minis{display:flex;gap:10px;flex-wrap:wrap}
+.mini .pfoot{padding:6px 10px 4px}
+.optgrid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,326px),1fr))}
+
+/* ---------- settled ---------- */
+.djibig{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.djibig figure,.lineup figure{margin:0;display:flex;flex-direction:column;gap:5px;align-items:center}
+.djibig .grid18{width:120px;height:120px;background:var(--tile);border-radius:12px;color:var(--ink)}
+.djibig figcaption,.lineup figcaption{font-size:10.5px;color:var(--ink-3)}
+.lineup{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-top:14px;color:var(--ink)}
+.lineup figcaption{font-family:var(--mono)}
+.lineup .hl figcaption{color:var(--accent);font-weight:600}
+.settled{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Audio Priority <span class="dim">· round 3, 15 Nov 2026</span></h1>
+      <p class="takeaway">The settled choices are locked in and polished. Three things to pick this round: how the device in use is marked, how rows are grabbed to re-rank them, and how devices are hidden and found again.</p>
+    </div>
+    <div class="sw"><span>Page</span><div class="seg" id="pageTheme"><button data-v="auto" aria-pressed="true">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button></div></div>
+  </div>
+  <nav class="toc"><a href="#proto">Prototype</a><a href="#sel">Selected state</a><a href="#grab">Drag handle</a><a href="#hide">Hiding devices</a><a href="#settled">Settled and polished</a><a href="#decide">Decisions</a></nav>
+
+  <section id="proto">
+    <h2>Prototype</h2>
+    <p class="lede">Everything works: click a device to use it, drag to re-rank, right-click a row for its menu, hide a device and bring it back. The switches change only the open choices.</p>
+    <div class="controls">
+      <div class="sw"><span>Mac appearance</span><div class="seg" id="macSeg"><button data-v="l" aria-pressed="true">Light</button><button data-v="d">Dark</button></div></div>
+      <div class="sw"><span>Selected state</span><div class="seg" id="selSeg"></div></div>
+      <div class="sw"><span>Drag handle</span><div class="seg" id="grabSeg"></div></div>
+      <div class="sw"><span>Hide control</span><div class="seg" id="hideSeg"></div></div>
+      <div class="sw"><span>Hidden devices</span><div class="seg" id="hiddenSeg"></div></div>
+      <div class="sw"><span>Lists</span><div class="seg" id="listSeg"><button data-v="plain" aria-pressed="true">Plain</button><button data-v="inset">Inset</button></div></div>
+    </div>
+    <div class="proto">
+      <div class="stage mac-l" id="stage">
+        <div class="wall"></div>
+        <div class="menubar">
+          <div class="mb-left"><svg width="14" height="16" viewBox="0 0 14 17" style="fill:currentColor;margin-right:6px"><path d="M11.6 8.5c0-2 1.6-2.9 1.7-3-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7s-1.6-.7-2.6-.7C3.4 4 2.1 4.8 1.4 6c-1.5 2.6-.4 6.4 1 8.5.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.6 1.1 0 1.8-1 2.5-2 .8-1.1 1.1-2.2 1.1-2.3 0 0-2.4-.9-2.4-3.7zM9.6 2.6C10.2 1.9 10.6.9 10.5 0c-.8 0-1.8.5-2.4 1.2-.5.6-1 1.6-.9 2.5.9.1 1.8-.4 2.4-1.1z"/></svg><span class="app">Finder</span><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span></div>
+          <div class="mb-right" id="mbRight"></div>
+        </div>
+        <div class="tip" id="tip"></div>
+        <div class="desk" id="desk"><div class="panel" id="panel" role="dialog" aria-label="Audio panel"></div></div>
+      </div>
+      <div class="side">
+        <div class="card">
+          <h4>Try a setup</h4>
+          <div class="scen" id="scen">
+            <button data-s="desk">Desk: MacBook + DJI</button>
+            <button data-s="airpods">AirPods only</button>
+            <button data-s="airdji">AirPods + DJI</button>
+            <button data-s="manual">Manual (Auto off)</button>
+            <button data-s="unhide">Show everything</button>
+          </div>
+          <div class="sim" style="margin-top:12px" id="sim"></div>
+          <div class="log" id="log" aria-live="polite"></div>
+        </div>
+        <div class="card small">
+          <h4>Hiding, in one paragraph</h4>
+          <p>A hidden device leaves its list and is never picked automatically. It keeps its rank, so Show puts it back where it was. Hide the device in use and audio moves to the next one. The iPhone microphone starts hidden here so there is something to find.</p>
+        </div>
+        <div class="card small">
+          <h4>Polished this round</h4>
+          <p>Rows glide when the order changes. Switches are system blue, as in DayNight. The drop line takes the list's colour. Long device names truncate inside the sliders. Every control has a focus ring and works from the keyboard (Option-Up/Down re-ranks).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sel">
+    <h2>Selected state</h2>
+    <p class="lede">Five ways to mark the device in use, from quietest to loudest, each in light and dark. Output is blue, input is violet. Round 2's badge is first; the rest add cues until the row can't be missed.</p>
+    <div class="optgrid" id="selCards"></div>
+  </section>
+
+  <section id="grab">
+    <h2>Drag handle</h2>
+    <p class="lede">Six ways to offer the drag, built from system symbols and system habits. The middle row is shown as it looks under the pointer. Option-Up and Option-Down, and Move Up / Move Down in the row's menu, work with all of them.</p>
+    <div class="optgrid" id="grabCards"></div>
+  </section>
+
+  <section id="hide">
+    <h2>Hiding devices</h2>
+    <p class="lede">Two choices: how you hide a device, and where hidden devices go. The right-click menu is there whichever hide control you pick.</p>
+    <h3 style="margin:0 0 10px;font-size:17px">How you hide</h3>
+    <div class="optgrid" id="hideCards"></div>
+    <h3 style="margin:22px 0 10px;font-size:17px">Where hidden devices go</h3>
+    <div class="optgrid" id="hiddenCards"></div>
+  </section>
+
+  <section id="settled">
+    <h2>Settled and polished</h2>
+    <p class="lede">No options left here; this is what the build will use. All device glyphs are the real macOS symbols.</p>
+    <div class="settled">
+      <div class="card"><h3>Capsule · Soft</h3><p class="small" style="margin:4px 0 0">48 pt wide, always two glyphs: output left, input right, each side showing the device that owns it. Auto off fills it solid.</p><div class="gcombos" id="capZoom" style="grid-template-columns:repeat(3,minmax(0,1fr))"></div><div class="bars" id="capBars"></div></div>
+      <div class="card"><h3>DJI Mic Mini glyph · Solid + clip</h3><p class="small" style="margin:4px 0 12px">The one custom glyph, in two cuts: regular for rows, and a small cut with wider slots for the capsule.</p><div class="djibig" id="djiBig"></div><div class="lineup" id="djiLine"></div></div>
+      <div class="card"><h3>App icon · Peaks</h3><p class="small" style="margin:4px 0 12px">Polished: each lit segment carries a soft top-light, the input channel sits at four of six, and the tile has a hairline rim. The 16 and 32 px sizes are their own three-segment drawing.</p><div id="iconBox"></div></div>
+      <div class="card"><h3>Beside the family</h3><p class="small" style="margin:4px 0 12px">DayNight, MediaKeys for Spotify, Screenshot Pathname and mac-reach's Polaris.</p><div class="fam l" id="famL"></div><div class="fam d" id="famD" style="margin-top:10px"></div></div>
+    </div>
+    <h3 style="margin:22px 0 10px;font-size:17px">System symbols in use</h3>
+    <div class="tblwrap"><table class="map" id="mapTable"></table></div>
+  </section>
+
+  <section id="decide">
+    <h2>Decisions</h2>
+    <p class="lede">Open choices first. The same table is in <code>README.md</code>.</p>
+    <div class="tblwrap"><table class="dec" id="decTable"></table></div>
+  </section>
+</div>
+
+<script>
+/*__ART__*/
+/*__DATA__*/
+setSF(SFDATA);
+
+// ---------------------------------------------------------------- helpers
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const cls = (n) => n.replace(/\./g, "_");
+document.head.appendChild(Object.assign(document.createElement("style"), {
+  textContent: Object.entries(SFDATA).flatMap(([n, e]) => Object.entries(e).map(([c, v]) => `.sf-${cls(n)}-${c}{--w:${v.w}px;--h:${v.h}px;-webkit-mask-image:url(${v.uri});mask-image:url(${v.uri})}`)).join(""),
+}));
+/** A real SF Symbol. cfg "cap" (10 pt semibold) or "row" (13 pt medium); k scales it. */
+const sf = (name, cfg = "row", k = 1) => `<span class="sf sf-${cls(name)}-${cfg}"${k === 1 ? "" : ` style="--k:${k}"`} aria-hidden="true"></span>`;
+const dj = (size, small) => djiSVG({ size, small }).replace("<svg ", '<svg class="dj" aria-hidden="true" ');
+/** Any device glyph: an SF Symbol name, or "dji" for the custom one. */
+const G = (key, cfg = "row", k = 1) => (key === "dji" ? dj((cfg === "cap" ? 15 : 19) * k, cfg === "cap") : sf(key, cfg, k));
+function segInit(id, onChange) {
+  const seg = document.getElementById(id);
+  seg.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    onChange(b.dataset.v);
+  });
+}
+const setSeg = (id, v) => document.querySelectorAll(`#${id} button`).forEach((x) => x.setAttribute("aria-pressed", x.dataset.v === v));
+const store = { get(k, d) { try { return localStorage.getItem("ap3-" + k) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem("ap3-" + k, v); } catch {} } };
+function applyTheme(v) { if (v === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", v); store.set("theme", v); }
+segInit("pageTheme", applyTheme);
+{ const t = store.get("theme", "auto"); setSeg("pageTheme", t); applyTheme(t); }
+
+// ---------------------------------------------------------------- the open choices
+const SEL = [
+  { id: "badge", name: "Badge", line: "Round 2: only the device in use gets a filled circle. Everything else is a bare glyph." },
+  { id: "cc", name: "Circles", line: "Every device sits in a grey circle and the one in use fills with colour, the way Control Center lists Wi-Fi networks and Bluetooth devices." },
+  { id: "tint", name: "Tinted row", rec: true, line: "Circles, plus a wash of the list's colour across the row in use. This is how DayNight marks its active mode." },
+  { id: "tintcheck", name: "Tinted + check", line: "Tinted row with a check at the right edge. Two cues at once; the clearest before it gets loud." },
+  { id: "fill", name: "Filled row", line: "The whole row fills with colour and the text turns white, like a selected menu item. Unmissable, and the heaviest thing in the panel." },
+];
+const GRAB = [
+  { id: "lead", name: "Hover, leading", line: "Round 2: the rank number turns into the three-line handle (line.3.horizontal) under the pointer." },
+  { id: "trailhover", name: "Hover, trailing", rec: true, line: "The three-line handle at the right edge, only on the row under the pointer. The iOS handle with Mac manners; the rank number stays put." },
+  { id: "trail", name: "Always, trailing", line: "The three-line handle at the right edge of every row, as in an iOS list in Edit mode. Always findable; adds a column of marks." },
+  { id: "chev", name: "Chevrons", line: "chevron.up.chevron.down on hover, the mark macOS puts on pop-up buttons. Says 'moves up and down' more than 'grab me'." },
+  { id: "none", name: "No handle", line: "Nothing drawn. Drag the row itself, as System Settings does in its sortable lists. Cleanest; you have to know rows drag." },
+  { id: "edit", name: "Edit mode", line: "An Edit button in each heading. Rows then show iOS handles and red minus buttons to hide, and Done puts them away. Nothing moves by accident." },
+];
+const HIDE = [
+  { id: "menu", name: "Right-click only", line: "Right-click or Control-click a row: Use, Move Up, Move Down, Hide. Nothing extra on screen; the Mac-native way." },
+  { id: "more", name: "⋯ on hover", rec: true, line: "An ellipsis button appears on the row under the pointer and opens the same menu. Findable without knowing to right-click." },
+  { id: "eye", name: "Eye on hover", line: "An eye.slash button on the row under the pointer hides it in one click. Fastest, and the easiest to hit by accident." },
+];
+const HIDDEN = [
+  { id: "list", name: "Per list", rec: true, line: "Each list ends with a '1 hidden' line. Open it to see that list's hidden devices, dimmed, each with a Show button." },
+  { id: "footer", name: "Footer link", line: "The footer reads '1 output · 3 inputs · 1 hidden'. Click the count and every hidden device appears in place, dimmed." },
+  { id: "section", name: "Hidden section", line: "One collapsed 'Hidden' heading under both lists holds every hidden device, outputs and inputs together." },
+];
+const pickRec = (arr) => arr.find((o) => o.rec).id;
+
+// ---------------------------------------------------------------- model
+const DEV = {
+  airpods:    { name: "AirPods Pro", role: "out", sym: "airpods.pro", bt: true, battery: true },
+  studio:     { name: "Studio Display Speakers", role: "out", sym: "display", detail: "Thunderbolt" },
+  mbspk:      { name: "MacBook Pro Speakers", role: "out", sym: "laptopcomputer", detail: "Built-in" },
+  dji:        { name: "Wireless Mic Rx", role: "in", sym: "dji", detail: "DJI Mic Mini · USB" },
+  airpodsMic: { name: "AirPods Pro", role: "in", sym: "airpods.pro", bt: true, battery: true, follows: "airpods" },
+  mbmic:      { name: "MacBook Pro Microphone", role: "in", sym: "laptopcomputer", detail: "Built-in" },
+  iphone:     { name: "iPhone 17 Pro Microphone", role: "in", sym: "iphone", detail: "Continuity" },
+};
+const BASE = { airpods: false, studio: false, mbspk: true, dji: true, mbmic: true, iphone: true };
+const S = {
+  mac: "l", sel: pickRec(SEL), grab: pickRec(GRAB), hideUI: pickRec(HIDE), hiddenUI: pickRec(HIDDEN), list: "plain",
+  open: true, auto: true, login: true, editing: false,
+  conn: { ...BASE }, connecting: null,
+  order: { headphones: ["airpods"], speakers: ["studio", "mbspk"], in: ["dji", "airpodsMic", "mbmic", "iphone"] },
+  hidden: new Set(["iphone"]),
+  showHidden: { out: false, in: false, all: false },
+  cur: { out: "mbspk", in: "dji" },
+  pick: { out: null, in: null },
+  vol: { out: 0.62, in: 0.78 },
+  bat: { l: 85, r: 85, c: 60 },
+  menu: null,
+};
+const opts = () => ({ sel: S.sel, grab: S.grab, hideUI: S.hideUI, hiddenUI: S.hiddenUI, editing: S.editing });
+const isConn = (id) => (DEV[id].follows ? S.conn[DEV[id].follows] : S.conn[id]);
+const isAvail = (id) => isConn(id) && !S.hidden.has(id);
+const groupsOf = (role) => (role === "out" ? ["headphones", "speakers"] : ["in"]);
+const groupOf = (id) => Object.keys(S.order).find((g) => S.order[g].includes(id));
+const all = (role) => groupsOf(role).flatMap((g) => S.order[g]);
+const ranked = (role) => all(role).filter((id) => !S.hidden.has(id));
+const hiddenOf = (role) => all(role).filter((id) => S.hidden.has(id));
+const firstAvail = (role) => ranked(role).find(isConn) ?? null;
+const rankOf = (role, id) => ranked(role).indexOf(id);
+const capKeys = () => [DEV[S.cur.out]?.sym ?? "speaker.wave.2.fill", DEV[S.cur.in]?.sym ?? "mic"];
+function settle(role, arrived = null) {
+  const cur = S.cur[role], best = firstAvail(role);
+  if (!S.auto) { if (!cur || !isAvail(cur)) S.cur[role] = best; return; }
+  if (S.pick[role] && isAvail(S.pick[role])) {
+    if (arrived && DEV[arrived].role === role && isAvail(arrived) && rankOf(role, arrived) < rankOf(role, S.pick[role])) { S.pick[role] = null; S.cur[role] = best; }
+    else S.cur[role] = S.pick[role];
+    return;
+  }
+  S.pick[role] = null; S.cur[role] = best;
+}
+function settleAll(arrived) { settle("out", arrived); settle("in", arrived === "airpods" ? "airpodsMic" : arrived); }
+function log(msg) { $("#log").textContent = msg; }
+const roleWord = (role) => (role === "out" ? "output" : "microphone");
+
+// ---------------------------------------------------------------- actions
+function choose(id) {
+  const d = DEV[id]; if (!isAvail(id)) return;
+  S.cur[d.role] = id;
+  if (S.auto) S.pick[d.role] = firstAvail(d.role) === id ? null : id;
+  log(S.auto && S.pick[d.role] ? `Using ${d.name}. It stays until it disconnects or a higher-ranked ${roleWord(d.role)} connects.` : `Using ${d.name}.`);
+  render();
+}
+function setConn(id, on, quiet) {
+  S.conn[id] = on;
+  const before = { ...S.cur };
+  settleAll(on ? id : null);
+  if (!quiet) {
+    const parts = [];
+    if (before.out !== S.cur.out) parts.push(`output → ${DEV[S.cur.out]?.name ?? "none"}`);
+    if (before.in !== S.cur.in) parts.push(`input → ${DEV[S.cur.in]?.name ?? "none"}`);
+    const held = on && id === "airpods" && S.cur.in !== "airpodsMic" && S.cur.in && isConn(S.cur.in) ? ` Mic held on ${DEV[S.cur.in].name}.` : "";
+    log(`${DEV[id].name} ${on ? "connected" : "disconnected"}${parts.length ? ": " + parts.join(", ") : ""}.${held}`);
+  }
+  render();
+}
+function connectBT(id) {
+  if (S.connecting) return;
+  if (S.conn[id]) { setConn(id, false); return; }
+  S.connecting = id; render();
+  setTimeout(() => { S.connecting = null; setConn(id, true); }, 900);
+}
+function setAuto(on) {
+  S.auto = on;
+  if (on) { S.pick = { out: null, in: null }; settleAll(); log("Auto on: back to the top-ranked devices."); }
+  else log("Auto off: devices stay where you put them. The capsule fills.");
+  render();
+}
+function reorder(group, id, beforeId) {
+  const arr = S.order[group];
+  arr.splice(arr.indexOf(id), 1);
+  arr.splice(beforeId == null ? arr.length : arr.indexOf(beforeId), 0, id);
+  const role = DEV[id].role;
+  if (S.auto) { S.pick[role] = null; settle(role); log(`Re-ranked. Auto now uses ${DEV[S.cur[role]]?.name ?? "nothing"}.`); }
+  else log("Re-ranked. Auto is off, so nothing switched.");
+  render();
+}
+/** Move one place among the visible rows of its group. Returns false at an end. */
+function move(id, dir) {
+  const g = groupOf(id), vis = S.order[g].filter((x) => !S.hidden.has(x)), j = vis.indexOf(id) + dir;
+  if (j < 0 || j >= vis.length) return false;
+  reorder(g, id, dir < 0 ? vis[j] : vis[j + 1] ?? null);
+  return true;
+}
+function hide(id) {
+  const d = DEV[id], wasCur = S.cur[d.role] === id;
+  S.hidden.add(id);
+  if (S.pick[d.role] === id) S.pick[d.role] = null;
+  settle(d.role);
+  log(`${d.name} hidden: it won't be used automatically.${wasCur ? ` ${d.role === "out" ? "Output" : "Input"} moved to ${DEV[S.cur[d.role]]?.name ?? "nothing"}.` : ""}`);
+  render();
+}
+function unhide(id) {
+  const d = DEV[id];
+  S.hidden.delete(id);
+  const before = S.cur[d.role];
+  settle(d.role, id);
+  log(`${d.name} is back at rank ${rankOf(d.role, id) + 1}.${before !== S.cur[d.role] ? ` Auto now uses ${DEV[S.cur[d.role]].name}.` : ""}`);
+  render();
+}
+const SCEN = {
+  desk:    { conn: { ...BASE }, auto: true, msg: "Desk: MacBook Pro Speakers out, DJI mic in." },
+  airpods: { conn: { ...BASE, airpods: true, dji: false }, auto: true, msg: "AirPods in, DJI receiver unplugged: AirPods out, AirPods mic in." },
+  airdji:  { conn: { ...BASE, airpods: true }, auto: true, msg: "AirPods in with the DJI plugged in: AirPods out, mic held on the DJI." },
+  manual:  { conn: { ...BASE }, auto: false, msg: "Auto off: the capsule fills." },
+};
+function scenario(k) {
+  if (k === "unhide") { S.hidden.clear(); settleAll(); log("Nothing is hidden."); render(); return; }
+  const s = SCEN[k];
+  S.conn = { ...s.conn }; S.auto = true; S.pick = { out: null, in: null }; settleAll(); S.auto = s.auto;
+  S.open = true; log(s.msg); render();
+}
+
+// ---------------------------------------------------------------- rows
+const BAT = (v) => `<svg viewBox="0 0 13 9"><rect x=".5" y=".5" width="10.5" height="8" rx="2" fill="none" stroke="currentColor" opacity=".55"/><rect x="2" y="2" width="${(7.5 * v) / 100}" height="5" rx="1" fill="currentColor"/><path d="M12 3v3" stroke="currentColor" opacity=".55" stroke-linecap="round"/></svg>`;
+function batteryLine(b = S.bat) {
+  const low = (v) => (v <= 20 ? " low" : ""), buds = b.l === b.r ? `${b.l}%` : `L ${b.l}% R ${b.r}%`;
+  return `<span class="bat${low(Math.min(b.l, b.r))}">${BAT(Math.min(b.l, b.r))}Buds ${buds}</span><span class="bat${low(b.c)}">${BAT(b.c)}Case ${b.c}%</span>`;
+}
+/**
+ * One row. `s` is what to show (id, role, name, sym, rank, cur, on, hid, hov, detail, bt, live, group);
+ * `o` is the open choices (sel, grab, hideUI, editing). Used by the panel and by the static minis.
+ */
+function rowHTML(s, o) {
+  const editing = o.grab === "edit" && o.editing;
+  const name = esc(s.name);
+  const c = ["row", `${s.role}-row`, s.cur && "cur", !s.on && "off", s.hid && "hid", s.hov && "hov"].filter(Boolean).join(" ");
+  let lead;
+  if (editing) lead = s.hid
+    ? `<button class="ebtn add" data-show="${s.id}" aria-label="Show ${name}">${sf("plus.circle.fill", "cap", 1.1)}</button>`
+    : `<button class="ebtn del" data-hide="${s.id}" aria-label="Hide ${name}">${sf("minus.circle.fill", "cap", 1.1)}</button>`;
+  else if (s.hid) lead = `<span class="rank"></span>`;
+  else lead = `<span class="rank${o.grab === "lead" ? " swap" : ""}">${s.rank}</span>` + (o.grab === "lead" ? `<span class="grip lead" aria-hidden="true">${sf("line.3.horizontal", "cap", 0.9)}</span>` : "");
+  let trail = "";
+  if (s.hid) { if (!editing) trail = `<button class="pill" data-show="${s.id}">Show</button>`; }
+  else {
+    if (s.bt === "connecting") trail += `<span class="spin"></span>`;
+    else if (s.bt === "connect") trail += `<button class="pill" data-bt="${s.id}">Connect</button>`;
+    else if (s.bt === "disconnect") trail += `<button class="pill ghost" data-bt="${s.id}" title="Disconnect ${name}">Disconnect</button>`;
+    if (o.sel === "tintcheck" && s.cur) trail += `<span class="chk">${sf("checkmark", "cap")}</span>`;
+    if (!editing && o.hideUI === "more") trail += `<button class="hbtn" data-more="${s.id}" aria-label="Actions for ${name}" aria-haspopup="menu">${sf("ellipsis", "cap")}</button>`;
+    if (!editing && o.hideUI === "eye") trail += `<button class="hbtn" data-hide="${s.id}" aria-label="Hide ${name}" title="Hide">${sf("eye.slash", "cap")}</button>`;
+    if (o.grab === "trail" || editing) trail += `<span class="grip" aria-hidden="true">${sf("line.3.horizontal", "cap")}</span>`;
+    if (o.grab === "trailhover") trail += `<span class="grip onhover" aria-hidden="true">${sf("line.3.horizontal", "cap")}</span>`;
+    if (o.grab === "chev") trail += `<span class="grip onhover" aria-hidden="true">${sf("chevron.up.chevron.down", "cap")}</span>`;
+  }
+  const canDrag = s.live && !s.hid && (o.grab !== "edit" || editing);
+  const attrs = s.live
+    ? `data-id="${s.id}"${s.hid ? "" : ` tabindex="0" role="button" aria-pressed="${!!s.cur}" data-pick="${s.id}" data-group="${s.group}"`}${canDrag ? ` draggable="true"` : ""} aria-label="${name}${s.hid ? ", hidden" : `${s.cur ? ", in use" : ""}, rank ${s.rank}`}"`
+    : "";
+  return `<div class="${c}" ${attrs}>${lead}<span class="gi">${G(s.sym, "cap")}</span><span class="nm"><b>${name}</b><i>${s.detail ?? ""}</i></span>${trail}</div>`;
+}
+function spec(id, group, rank) {
+  const d = DEV[id], on = isConn(id), hid = S.hidden.has(id);
+  const connecting = S.connecting === (d.follows ?? id);
+  let detail;
+  if (hid) detail = `${S.hiddenUI === "section" ? (d.role === "out" ? "Output · " : "Input · ") : ""}Hidden${on ? "" : " · not connected"}`;
+  else if (d.bt && on && d.battery) detail = batteryLine();
+  else if (d.bt && !on) detail = connecting ? "Connecting…" : "Paired · not connected";
+  else if (!on) detail = id === "dji" ? "Receiver unplugged" : "Not connected";
+  else detail = esc(d.detail ?? "");
+  return { id, group, role: d.role, name: d.name, sym: d.sym, rank, on, hid, cur: !hid && S.cur[d.role] === id, detail, live: true,
+    bt: d.bt && !d.follows && !hid ? (connecting ? "connecting" : on ? "disconnect" : "connect") : null };
+}
+const cv = (open) => `<span class="cv">${sf(open ? "chevron.down" : "chevron.right", "cap", 0.72)}</span>`;
+function listHTML(role, o) {
+  let rank = 0, html = "";
+  for (const g of groupsOf(role)) html += `<div class="rows" data-list="${g}">${S.order[g].filter((id) => !S.hidden.has(id)).map((id) => rowHTML(spec(id, g, ++rank), o)).join("")}</div>`;
+  const hid = hiddenOf(role);
+  if (!hid.length || o.hiddenUI === "section") return html;
+  const editing = o.grab === "edit" && o.editing;
+  const open = editing || (o.hiddenUI === "list" ? S.showHidden[role] : S.showHidden.all);
+  if (o.hiddenUI === "list") html += `<button class="hdisc" data-hl="${role}" aria-expanded="${open}">${cv(open)}${hid.length} hidden</button>`;
+  if (open) html += `<div class="rows">${hid.map((id) => rowHTML(spec(id, null, 0), o)).join("")}</div>`;
+  return html;
+}
+function slider(role) {
+  const v = S.vol[role], d = DEV[S.cur[role]];
+  return `<div class="ccs"><span class="fill" style="width:${v * 100}%"></span><span class="gl">${G(d?.sym ?? (role === "out" ? "speaker.wave.2.fill" : "mic"))}</span><span class="lbl">${esc(d?.name ?? (role === "out" ? "No output" : "No microphone"))}</span><span class="end">${sf(role === "out" ? "speaker.wave.2.fill" : "mic.fill", "cap")}</span><input type="range" min="0" max="100" value="${Math.round(v * 100)}" data-vol="${role}" aria-label="${role === "out" ? "Output volume" : "Input level"}"></div>`;
+}
+function panelHTML() {
+  const o = opts(), wrap = (s) => (S.list === "inset" ? `<div class="pcard">${s}</div>` : s), sep = S.list === "inset" ? "" : `<div class="psep"></div>`;
+  const head = (label, hint) => `<div class="sec">${label}${o.grab === "edit" ? `<button class="edit" data-edit>${S.editing ? "Done" : "Edit"}</button>` : `<span>${hint}</span>`}</div>`;
+  const n = (r) => ranked(r).filter(isConn).length, nh = S.hidden.size;
+  let hiddenSection = "";
+  if (o.hiddenUI === "section" && nh) {
+    const open = S.showHidden.all || (o.grab === "edit" && S.editing);
+    hiddenSection = wrap(`<button class="hdisc" data-hl="all" aria-expanded="${open}" style="font-weight:600">${cv(open)}Hidden <span style="font-weight:500;color:var(--p-ink3)">${nh}</span></button>`
+      + (open ? `<div class="rows">${[...hiddenOf("out"), ...hiddenOf("in")].map((id) => rowHTML(spec(id, null, 0), o)).join("")}</div>` : "")) + sep;
+  }
+  return (S.auto ? "" : `<div class="banner">Auto is off. Devices stay where you put them.</div>`)
+    + `<div class="cc">${slider("out")}${slider("in")}</div>`
+    + wrap(head("Output", "headphones first") + listHTML("out", o)) + sep
+    + wrap(head("Input", "held when AirPods connect") + listHTML("in", o)) + sep
+    + hiddenSection
+    + `<div class="trow"><span>Auto Switch<span class="hint">${S.auto ? "Uses your top-ranked devices" : "Off: devices stay where you put them"}</span></span><button class="tog" role="switch" aria-checked="${S.auto}" data-tog="auto" aria-label="Auto Switch"></button></div>`
+    + `<div class="trow"><span>Open at Login</span><button class="tog" role="switch" aria-checked="${S.login}" data-tog="login" aria-label="Open at Login"></button></div>`
+    + `<div class="psep"></div><div class="pfoot"><span>${n("out")} output${n("out") === 1 ? "" : "s"} · ${n("in")} input${n("in") === 1 ? "" : "s"}${o.hiddenUI === "footer" && nh ? ` · <button class="flink" data-hl="all" aria-expanded="${S.showHidden.all}">${nh} hidden</button>` : ""}</span><button class="quit" title="Quit (⌘Q)">Quit</button></div>`;
+}
+
+// ---------------------------------------------------------------- context menu
+function menuItems(id) {
+  const d = DEV[id], hid = S.hidden.has(id), on = isConn(id), cur = S.cur[d.role] === id;
+  if (hid) return [["show", `Show “${d.name}”`]];
+  const vis = S.order[groupOf(id)].filter((x) => !S.hidden.has(x)), i = vis.indexOf(id);
+  const items = [["use", cur ? "In Use" : "Use", cur || !on]];
+  if (d.bt) items.push(["bt", on ? "Disconnect" : "Connect"]);
+  items.push(null, ["up", "Move Up", i === 0], ["down", "Move Down", i === vis.length - 1], null, ["hide", "Hide"]);
+  return items;
+}
+const menuHTML = (items, hot) => items.map((it) => (it ? `<button role="menuitem" data-act="${it[0]}"${it[2] ? " disabled" : ""}${it[0] === hot ? ' class="hot"' : ""}>${esc(it[1])}</button>` : "<hr>")).join("");
+function openMenu(id, x, y) { S.menu = { id, x, y }; renderMenu(); }
+function closeMenu() { if (!S.menu) return; S.menu = null; renderMenu(); }
+function renderMenu() {
+  $("#ctx")?.remove();
+  document.querySelectorAll('.hbtn[aria-expanded="true"]').forEach((b) => b.removeAttribute("aria-expanded"));
+  if (!S.menu) return;
+  const desk = $("#desk"), el = document.createElement("div");
+  el.className = "ctx"; el.id = "ctx"; el.setAttribute("role", "menu");
+  el.innerHTML = menuHTML(menuItems(S.menu.id));
+  desk.appendChild(el);
+  const dr = desk.getBoundingClientRect();
+  el.style.left = Math.max(6, Math.min(S.menu.x - dr.left, dr.width - el.offsetWidth - 6)) + "px";
+  el.style.top = Math.max(6, Math.min(S.menu.y - dr.top, dr.height - el.offsetHeight - 6)) + "px";
+  $(`.hbtn[data-more="${S.menu.id}"]`)?.setAttribute("aria-expanded", "true");
+  el.querySelector("button:not(:disabled)")?.focus();
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-act]"); if (!b || b.disabled) return;
+    const id = S.menu.id, d = DEV[id]; S.menu = null;
+    ({ use: () => choose(id), bt: () => connectBT(d.follows ?? id), up: () => move(id, -1), down: () => move(id, 1), hide: () => hide(id), show: () => unhide(id) })[b.dataset.act]();
+    renderMenu();
+  });
+  el.addEventListener("keydown", (e) => {
+    const bs = [...el.querySelectorAll("button:not(:disabled)")], i = bs.indexOf(document.activeElement);
+    if (e.key === "ArrowDown") { e.preventDefault(); bs[(i + 1) % bs.length].focus(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); bs[(i - 1 + bs.length) % bs.length].focus(); }
+  });
+}
+
+// ---------------------------------------------------------------- menu bar and render
+function renderMenubar() {
+  const [o, i] = capKeys();
+  $("#mbRight").innerHTML = `<span class="mbi" title="DayNight">${sf("sun.max.fill")}</span><button class="mbi ours" id="ours" aria-expanded="${S.open}" aria-label="Audio: output ${esc(DEV[S.cur.out]?.name ?? "none")}, input ${esc(DEV[S.cur.in]?.name ?? "none")}${S.auto ? "" : ", Auto off"}">${capsule(o, i, { manual: !S.auto })}</button><span class="mbi">${sf("wifi")}</span><span class="mbi">${sf("battery.100percent")}</span><span class="mbi">${sf("switch.2")}</span><span class="clock">Sun 15 Nov  9:41</span>`;
+}
+function placePanel() {
+  const ours = $("#ours"), stage = $("#stage"), panel = $("#panel");
+  if (!ours) return;
+  const sr = stage.getBoundingClientRect(), r = ours.getBoundingClientRect(), w = panel.offsetWidth;
+  panel.style.left = Math.min(Math.max(r.left + r.width / 2 - w / 2 - sr.left, 8), sr.width - w - 8) + "px";
+  $("#tip").style.left = Math.max(8, Math.min(r.left - sr.left - 40, sr.width - 260)) + "px";
+}
+const still = window.matchMedia("(prefers-reduced-motion: reduce)");
+function render() {
+  const stage = $("#stage"), panel = $("#panel");
+  stage.className = `stage mac-${S.mac}`;
+  renderMenubar();
+  // Rows glide to their new place (FLIP), measured against the panel's top.
+  const top = () => panel.getBoundingClientRect().top;
+  const before = new Map([...panel.querySelectorAll("[data-id]")].map((el) => [el.dataset.id, el.getBoundingClientRect().top - top()]));
+  const focusId = document.activeElement?.closest?.("#panel [data-id]")?.dataset.id;
+  panel.hidden = !S.open;
+  panel.dataset.sel = S.sel; panel.dataset.grab = S.grab;
+  panel.innerHTML = panelHTML();
+  if (!still.matches && before.size) panel.querySelectorAll("[data-id]").forEach((el) => {
+    const was = before.get(el.dataset.id); if (was == null) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180 }); return; }
+    const d = was - (el.getBoundingClientRect().top - top());
+    if (Math.abs(d) > 1) el.animate([{ transform: `translateY(${d}px)` }, { transform: "none" }], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" });
+  });
+  if (focusId) panel.querySelector(`[data-id="${focusId}"]`)?.focus({ preventScroll: true });
+  $("#sim").innerHTML = [["airpods", "AirPods connected"], ["dji", "DJI receiver plugged in"], ["studio", "Studio Display connected"]]
+    .map(([id, l]) => `<label><input type="checkbox" data-sim="${id}" ${S.conn[id] ? "checked" : ""}> ${l}</label>`).join("")
+    + `<label><input type="checkbox" data-sim="auto" ${S.auto ? "checked" : ""}> Auto Switch</label>`;
+  placePanel();
+  renderMenu();
+  requestAnimationFrame(placePanel);
+}
+
+// ---------------------------------------------------------------- events
+const panelEl = $("#panel");
+panelEl.addEventListener("click", (e) => {
+  const t = (sel) => e.target.closest(sel);
+  let b;
+  if ((b = t("[data-more]"))) { e.stopPropagation(); const r = b.getBoundingClientRect(); if (S.menu?.id === b.dataset.more) closeMenu(); else openMenu(b.dataset.more, r.right - 196, r.bottom + 4); return; }
+  if ((b = t("[data-hide]"))) { hide(b.dataset.hide); return; }
+  if ((b = t("[data-show]"))) { unhide(b.dataset.show); return; }
+  if ((b = t("[data-hl]"))) { S.showHidden[b.dataset.hl] = !S.showHidden[b.dataset.hl]; render(); return; }
+  if (t("[data-edit]")) { S.editing = !S.editing; render(); panelEl.querySelector("[data-edit]")?.focus(); return; }
+  if ((b = t("[data-bt]"))) { connectBT(b.dataset.bt); return; }
+  if ((b = t("[data-tog]"))) { if (b.dataset.tog === "auto") setAuto(!S.auto); else { S.login = !S.login; render(); } panelEl.querySelector(`[data-tog="${b.dataset.tog}"]`)?.focus(); return; }
+  if (t(".quit")) { log("Quit is a no-op in the mock."); return; }
+  if ((b = t("[data-pick]"))) {
+    const id = b.dataset.pick, d = DEV[id];
+    if (isConn(id)) choose(id);
+    else if (d.bt) connectBT(d.follows ?? id);
+    else log(`${d.name} isn't connected. Use the switches on the right to plug it in.`);
+  }
+});
+panelEl.addEventListener("contextmenu", (e) => { const r = e.target.closest("[data-id]"); if (!r) return; e.preventDefault(); openMenu(r.dataset.id, e.clientX, e.clientY); });
+panelEl.addEventListener("keydown", (e) => {
+  const r = e.target.closest("[data-pick]"); if (!r || e.target !== r) return;
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); r.click(); }
+  if ((e.key === "ArrowUp" || e.key === "ArrowDown") && e.altKey) { e.preventDefault(); move(r.dataset.pick, e.key === "ArrowUp" ? -1 : 1); }
+});
+panelEl.addEventListener("input", (e) => {
+  const v = e.target.dataset.vol; if (!v) return;
+  S.vol[v] = e.target.value / 100;
+  e.target.parentElement.querySelector(".fill").style.width = e.target.value + "%";
+});
+let drag = null;
+panelEl.addEventListener("dragstart", (e) => {
+  const r = e.target.closest('[draggable="true"]'); if (!r) return;
+  closeMenu();
+  drag = { id: r.dataset.id, group: r.dataset.group };
+  e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", drag.id);
+  requestAnimationFrame(() => r.classList.add("dragging"));
+});
+const clearDrop = () => panelEl.querySelectorAll(".drop-above,.drop-below").forEach((x) => x.classList.remove("drop-above", "drop-below"));
+const dropRow = (e) => { const r = e.target.closest("[data-pick]"); return drag && r && r.dataset.group === drag.group ? r : null; };
+panelEl.addEventListener("dragover", (e) => {
+  const r = dropRow(e); if (!r) return;
+  e.preventDefault(); clearDrop();
+  const b = r.getBoundingClientRect(); r.classList.add(e.clientY < b.top + b.height / 2 ? "drop-above" : "drop-below");
+});
+panelEl.addEventListener("dragleave", (e) => { if (!panelEl.contains(e.relatedTarget)) clearDrop(); });
+panelEl.addEventListener("drop", (e) => {
+  const r = dropRow(e); if (!r) return;
+  e.preventDefault();
+  const above = r.classList.contains("drop-above"), vis = S.order[drag.group].filter((x) => !S.hidden.has(x));
+  let before = above ? r.dataset.id : vis[vis.indexOf(r.dataset.id) + 1] ?? null;
+  if (before === drag.id) before = vis[vis.indexOf(drag.id) + 1] ?? null;
+  clearDrop(); if (r.dataset.id !== drag.id) reorder(drag.group, drag.id, before);
+});
+panelEl.addEventListener("dragend", () => { drag = null; clearDrop(); panelEl.querySelectorAll(".dragging").forEach((x) => x.classList.remove("dragging")); });
+
+$("#mbRight").addEventListener("click", (e) => { if (e.target.closest("#ours")) { S.open = !S.open; closeMenu(); render(); } });
+$("#mbRight").addEventListener("mouseover", (e) => { if (e.target.closest("#ours")) { const t = $("#tip"); t.textContent = `Out: ${DEV[S.cur.out]?.name ?? "none"} · In: ${DEV[S.cur.in]?.name ?? "none"}${S.auto ? "" : " · Auto off"}`; t.classList.add("on"); } });
+$("#mbRight").addEventListener("mouseout", () => $("#tip").classList.remove("on"));
+$("#sim").addEventListener("change", (e) => { const k = e.target.dataset.sim; if (!k) return; if (k === "auto") setAuto(e.target.checked); else setConn(k, e.target.checked); });
+$("#scen").addEventListener("click", (e) => { const b = e.target.closest("[data-s]"); if (b) scenario(b.dataset.s); });
+document.addEventListener("click", (e) => { if (S.menu && !e.target.closest("#ctx") && !e.target.closest("[data-more]")) closeMenu(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (S.menu) { const id = S.menu.id; closeMenu(); panelEl.querySelector(`[data-id="${id}"]`)?.focus(); }
+  else if (S.editing) { S.editing = false; render(); }
+  else if (S.open) { S.open = false; render(); }
+});
+window.addEventListener("resize", placePanel);
+
+// ---------------------------------------------------------------- switches and option cards
+const segFill = (id, arr, cur) => { document.getElementById(id).innerHTML = arr.map((o) => `<button data-v="${o.id}" aria-pressed="${o.id === cur}">${o.name}</button>`).join(""); };
+segFill("selSeg", SEL, S.sel); segFill("grabSeg", GRAB, S.grab); segFill("hideSeg", HIDE, S.hideUI); segFill("hiddenSeg", HIDDEN, S.hiddenUI);
+function setOpt(key, v) {
+  S[key] = v; S.editing = false; closeMenu();
+  setSeg({ sel: "selSeg", grab: "grabSeg", hideUI: "hideSeg", hiddenUI: "hiddenSeg" }[key], v);
+  render(); renderCards();
+}
+segInit("macSeg", (v) => { S.mac = v; render(); renderCards(); });
+segInit("selSeg", (v) => setOpt("sel", v)); segInit("grabSeg", (v) => setOpt("grab", v));
+segInit("hideSeg", (v) => setOpt("hideUI", v)); segInit("hiddenSeg", (v) => setOpt("hiddenUI", v));
+segInit("listSeg", (v) => { S.list = v; render(); });
+
+// Sample rows for the static minis.
+const R = {
+  airpods: { id: "a", role: "out", name: "AirPods Pro", sym: "airpods.pro", rank: 1, on: true, detail: batteryLine({ l: 85, r: 85, c: 60 }) },
+  studio: { id: "s", role: "out", name: "Studio Display Speakers", sym: "display", rank: 2, on: false, detail: "Not connected" },
+  mac: { id: "m", role: "out", name: "MacBook Pro Speakers", sym: "laptopcomputer", rank: 3, on: true, detail: "Built-in" },
+  dji: { id: "d", role: "in", name: "Wireless Mic Rx", sym: "dji", rank: 1, on: true, detail: "DJI Mic Mini · USB" },
+  mbmic: { id: "b", role: "in", name: "MacBook Pro Microphone", sym: "laptopcomputer", rank: 2, on: true, detail: "Built-in" },
+  iphone: { id: "i", role: "in", name: "iPhone 17 Pro Microphone", sym: "iphone", rank: 0, on: true, hid: true, detail: "Hidden" },
+};
+const mini = (mode, o, inner) => `<div class="mini mac-${mode}" data-sel="${o.sel}" data-grab="${o.grab}">${inner}</div>`;
+const card = (key, arr, o, body) => `<div class="card${S[key] === o.id ? " picked" : ""}"><h3>${o.name}${o.rec ? '<span class="rec">Recommended</span>' : ""}</h3><p class="small" style="margin:4px 0 0">${o.line}</p>${body}<button class="pick" data-set="${key}:${o.id}">${S[key] === o.id ? "Shown in the prototype" : "Show in the prototype"}</button></div>`;
+function renderCards() {
+  const base = opts(); base.editing = false;
+  $("#selCards").innerHTML = SEL.map((o) => {
+    const oo = { ...base, sel: o.id, grab: "none", hideUI: "menu" };
+    const rows = rowHTML({ ...R.airpods, cur: true }, oo) + rowHTML({ ...R.mac, rank: 2 }, oo) + rowHTML({ ...R.dji, cur: true }, oo) + rowHTML(R.mbmic, oo);
+    return card("sel", SEL, o, `<div class="minis">${mini("l", oo, rows)}${mini("d", oo, rows)}</div>`);
+  }).join("");
+  $("#grabCards").innerHTML = GRAB.map((o) => {
+    const oo = { ...base, grab: o.id, hideUI: "menu", editing: o.id === "edit" };
+    const head = o.id === "edit" ? `<div class="sec">Output<button class="edit" tabindex="-1">Done</button></div>` : "";
+    return card("grab", GRAB, o, mini(S.mac, oo, head + rowHTML({ ...R.airpods, cur: true }, oo) + rowHTML({ ...R.mac, rank: 2, hov: true }, oo) + rowHTML({ ...R.studio, rank: 3 }, oo)));
+  }).join("");
+  $("#hideCards").innerHTML = HIDE.map((o) => {
+    const oo = { ...base, hideUI: o.id, grab: base.grab === "edit" ? "trailhover" : base.grab };
+    const menu = o.id === "eye" ? "" : `<div class="ctx static">${menuHTML([["use", "Use"], null, ["up", "Move Up"], ["down", "Move Down", true], null, ["hide", "Hide"]], "hide")}</div>`;
+    return card("hideUI", HIDE, o, mini(S.mac, oo, rowHTML({ ...R.dji, cur: true }, oo) + rowHTML({ ...R.mbmic, hov: true }, oo) + menu));
+  }).join("");
+  $("#hiddenCards").innerHTML = HIDDEN.map((o) => {
+    const oo = { ...base, hiddenUI: o.id, hideUI: "menu", grab: "none" };
+    const live = rowHTML({ ...R.dji, cur: true }, oo) + rowHTML(R.mbmic, oo);
+    const hidRow = rowHTML({ ...R.iphone, detail: o.id === "section" ? "Input · Hidden" : "Hidden" }, oo);
+    const body = o.id === "list" ? live + `<div class="hdisc">${cv(true)}1 hidden</div>` + hidRow
+      : o.id === "footer" ? live + hidRow + `<div class="psep"></div><div class="pfoot"><span>1 output · 2 inputs · <span style="color:var(--sys)">1 hidden</span></span><span>Quit</span></div>`
+      : live + `<div class="psep"></div><div class="hdisc" style="font-weight:600">${cv(true)}Hidden <span style="font-weight:500;color:var(--p-ink3)">1</span></div>` + hidRow;
+    return card("hiddenUI", HIDDEN, o, mini(S.mac, oo, body));
+  }).join("");
+}
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-set]"); if (!b) return; const [k, v] = b.dataset.set.split(":"); setOpt(k, v); $("#proto").scrollIntoView(); });
+
+// ---------------------------------------------------------------- settled
+const neighbours = (g) => `${sf("sun.max.fill")}${g}${sf("wifi")}${sf("battery.100percent")}${sf("switch.2")}<span>9:41</span>`;
+const zoom = (svg, k) => svg.replace(/width="([\d.]+)" height="([\d.]+)"/, (m, w, h) => `width="${w * k}" height="${h * k}"`);
+const svgURL = (s) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+function renderSettled() {
+  const gs = COMBOS.map((c) => ({ c, g: capsule(c.out, c.in, { manual: !!c.manual }) }));
+  $("#capZoom").innerHTML = gs.map(({ c, g }) => `<div class="gz">${zoom(g, 2.5)}<span class="tiny">${esc(c.label)}</span></div>`).join("");
+  $("#capBars").innerHTML = ["l", "d"].map((m) => `<div class="rowb">${[gs[0], gs[1], gs[5]].map(({ g }) => `<span class="bar ${m}">${neighbours(g)}</span>`).join("")}</div>`).join("");
+  $("#djiBig").innerHTML = `<figure><div class="grid18">${djiSVG({ size: 120, small: false, grid: true })}</div><figcaption>Regular cut, 18 pt grid</figcaption></figure><figure><div class="grid18">${djiSVG({ size: 120, small: true, grid: true })}</div><figcaption>Small cut (capsule)</figcaption></figure>`;
+  const line = (k) => ["airpods.pro", "hifispeaker.fill", "laptopcomputer", "mic"].map((b) => `<figure>${sf(b, "row", k)}<figcaption>${b}</figcaption></figure>`).join("") + `<figure class="hl">${dj(19 * k, false)}<figcaption>dji</figcaption></figure>`;
+  $("#djiLine").innerHTML = line(1) + `<span style="flex-basis:100%"></span>` + line(2);
+  const big = svgURL(appIcon("light")), dark = svgURL(appIcon("dark")), tint = svgURL(appIcon("tinted"));
+  const sm = (m) => svgURL(appIconSmall(m));
+  $("#iconBox").innerHTML = `<div class="sizes" style="margin-top:0"><figure><img src="${big}" width="200" height="200" alt="Peaks app icon"><figcaption>1024, scaled</figcaption></figure>
+    <figure><img src="${big}" width="128" height="128" alt=""><figcaption>128</figcaption></figure><figure><img src="${sm("light")}" width="32" height="32" alt=""><figcaption>32</figcaption></figure><figure><img src="${sm("light")}" width="16" height="16" alt=""><figcaption>16</figcaption></figure>
+    <figure><img src="${dark}" width="96" height="96" alt=""><figcaption>Dark</figcaption></figure><figure><img src="${tint}" width="96" height="96" alt=""><figcaption>Tinted</figcaption></figure></div>`;
+  const fam = (mode) => {
+    const m = mode === "d" ? "dark" : "light";
+    const items = [["DayNight", FAMILY.daynight], ["MediaKeys", FAMILY.mediakeys], ["Screenshot Pathname", FAMILY.screenshot], ["Polaris", FAMILY.polaris]];
+    return items.map(([n, src]) => `<figure><img src="${src}" width="80" height="80" alt="${n}"><figcaption>${n}</figcaption></figure>`).join("")
+      + `<figure class="new"><img src="${svgURL(appIcon(m))}" width="80" height="80" alt="Audio Priority"><figcaption>Audio Priority</figcaption></figure>`
+      + `<div class="dock ${mode}">${items.map(([, src]) => `<img src="${src}" width="32" height="32" alt="">`).join("")}<img src="${sm(m)}" width="32" height="32" alt=""></div>`;
+  };
+  $("#famL").innerHTML = fam("l"); $("#famD").innerHTML = fam("d");
+  const MAP = [
+    ["MacBook speakers and MacBook microphone", "laptopcomputer"], ["External display speakers", "display"], ["AirPods Pro", "airpods.pro"], ["AirPods", "airpods"], ["AirPods Max", "airpods.max"],
+    ["Other headphones or headsets", "headphones"], ["iPhone Continuity microphone", "iphone"], ["Other speakers, audio interfaces", "hifispeaker.fill"], ["HomePod", "homepod.fill"], ["TV or HDMI output", "tv"],
+    ["Unknown microphone", "mic"], ["Unknown output", "speaker.wave.2.fill"], ["Wireless Mic Rx (DJI Mic Mini)", "dji"],
+    ["Panel: output level, input level", "speaker.wave.2.fill", "mic.fill"], ["Panel: handle, actions, hide, check", "line.3.horizontal", "ellipsis", "eye.slash", "checkmark"],
+    ["Panel: Edit mode, disclosure", "minus.circle.fill", "plus.circle.fill", "chevron.right", "chevron.down"],
+  ];
+  $("#mapTable").innerHTML = `<tr><th>Device or use</th><th>Symbol</th><th>Capsule size</th><th>Row size</th><th>2×</th></tr>`
+    + MAP.map(([what, ...keys]) => `<tr${keys[0] === "dji" ? ' class="custom"' : ""}><td>${what}</td><td>${keys.map((k) => (k === "dji" ? "<b>custom</b>" : `<code>${k}</code>`)).join(", ")}</td>`
+      + ["cap", "row"].map((c) => `<td class="g">${keys.map((k) => G(k, c)).join(" &nbsp; ")}</td>`).join("") + `<td class="g">${keys.map((k) => G(k, "row", 2)).join(" &nbsp; ")}</td></tr>`).join("");
+}
+
+// ---------------------------------------------------------------- decisions
+const names = (arr) => arr.map((o) => o.name).join(" · "), recName = (arr) => arr.find((o) => o.rec).name;
+const DEC = [
+  ["Selected state", names(SEL), recName(SEL), ""],
+  ["Drag handle", names(GRAB), recName(GRAB), ""],
+  ["Hide control", names(HIDE), recName(HIDE), ""],
+  ["Hidden devices", names(HIDDEN), recName(HIDDEN), ""],
+  ["Lists in the panel", "Plain · Inset", "Plain", ""],
+  ["Fork or rebuild", "Settled", "", "Lean rebuild"],
+  ["Panel", "Settled", "", "Quiet list"],
+  ["Menu-bar glyph", "Settled", "", "Capsule, Soft, always the device"],
+  ["DJI Mic Mini glyph", "Settled", "", "Solid + clip"],
+  ["App icon", "Settled", "", "Peaks"],
+  ["Name", "Settled for now", "", "Audio Priority"],
+];
+$("#decTable").innerHTML = `<tr><th>#</th><th>Decision</th><th>Options</th><th>Recommended</th><th>Race's choice</th></tr>` + DEC.map((d, i) => `<tr><td>${i + 1}</td><td>${d[0]}</td><td>${d[1]}</td><td><b>${d[2]}</b></td><td>${d[3]}</td></tr>`).join("");
+
+renderCards(); renderSettled(); render();
+</script>
+</body>
+</html>

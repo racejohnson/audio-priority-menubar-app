@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<defs>
+<clipPath id="polaris-tile"><path d="M382.8,100 L641.2,100 C722.63,100 763.34,100 807.17,113.86 C855.03,131.28 892.72,168.97 910.14,216.83 C924,260.66 924,301.37 924,382.8 L924,641.2 C924,722.63 924,763.34 910.14,807.17 C892.72,855.03 855.03,892.72 807.17,910.14 C763.34,924 722.63,924 641.2,924 L382.8,924 C301.37,924 260.66,924 216.83,910.14 C168.97,892.72 131.28,855.03 113.86,807.17 C100,763.34 100,722.63 100,641.2 L100,382.8 C100,301.37 100,260.66 113.86,216.83 C131.28,168.97 168.97,131.28 216.83,113.86 C260.66,100 301.37,100 382.8,100 Z"/></clipPath>
+<linearGradient id="polaris-bg" x1="0" y1="100" x2="0" y2="924" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#6a1d38"/><stop offset="1" stop-color="#250a1a"/></linearGradient>
+<radialGradient id="polaris-glow" cx="512" cy="545" r="430" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff9f8a" stop-opacity="0.14"/><stop offset="1" stop-color="#ff9f8a" stop-opacity="0"/></radialGradient>
+<linearGradient id="polaris-hl" x1="0" y1="100" x2="0" y2="300" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity=".07"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+</defs>
+<g clip-path="url(#polaris-tile)">
+<rect x="100" y="100" width="824" height="824" fill="url(#polaris-bg)"/>
+<rect x="100" y="100" width="824" height="824" fill="url(#polaris-glow)"/>
+<rect x="100" y="100" width="824" height="824" fill="url(#polaris-hl)"/>
+</g>
+<path fill="#e39c80" d="M512.00,545.00 L405.93,438.93 L512.00,175.00 Z M512.00,545.00 L618.07,438.93 L768.00,545.00 Z M512.00,545.00 L618.07,651.07 L512.00,801.00 Z M512.00,545.00 L405.93,651.07 L256.00,545.00 Z"/>
+<path fill="#fff8f1" d="M512.00,545.00 L512.00,175.00 L618.07,438.93 Z M512.00,545.00 L768.00,545.00 L618.07,651.07 Z M512.00,545.00 L512.00,801.00 L405.93,651.07 Z M512.00,545.00 L256.00,545.00 L405.93,438.93 Z"/>
+</svg>
