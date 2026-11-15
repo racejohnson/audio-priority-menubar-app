@@ -14,6 +14,8 @@ final class PanelController {
     private var screen: NSScreen?
     private var monitors: [Any] = []
     private var observers: [(NotificationCenter, any NSObjectProtocol)] = []
+    /// When the panel last closed, in system uptime.
+    private var closedAt: TimeInterval = 0
 
     private static let cornerRadius: CGFloat = 22
     private static let gapBelowMenuBar: CGFloat = 6
@@ -35,8 +37,16 @@ final class PanelController {
 
     var isVisible: Bool { panel.isVisible }
 
+    /// A click on the status item while the panel is open closes it. On
+    /// macOS 26 and later that click can also reach the outside-click monitor,
+    /// which closes the panel a moment before this runs; without the check the
+    /// same click would then open it again.
     func toggle(below button: NSStatusBarButton) {
-        isVisible ? close() : show(below: button)
+        if isVisible {
+            close()
+        } else if ProcessInfo.processInfo.systemUptime - closedAt > 0.25 {
+            show(below: button)
+        }
     }
 
     func show(below button: NSStatusBarButton) {
@@ -62,6 +72,7 @@ final class PanelController {
         guard panel.isVisible else { return }
         stopMonitoring()
         panel.orderOut(nil)
+        closedAt = ProcessInfo.processInfo.systemUptime
         model.panelDidClose()
         onVisibilityChange?(false)
     }
@@ -90,8 +101,8 @@ final class PanelController {
     }
 
     private func startMonitoring() {
-        // Global monitors only see clicks in other apps, so clicks on our own
-        // status item still reach `toggle` and `clicked`.
+        // Closes the panel on a click anywhere outside this app. A click on our
+        // own status item may or may not arrive here; `toggle` handles both.
         if let monitor = NSEvent.addGlobalMonitorForEvents(
             matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown],
             handler: { [weak self] _ in MainActor.assumeIsolated { self?.close() } }

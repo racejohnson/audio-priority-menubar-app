@@ -26,7 +26,9 @@ final class StatusItemController: NSObject {
         guard let button = item.button else { return }
         button.target = self
         button.action = #selector(clicked(_:))
-        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        // On mouse down, like the system's own menu-bar items, so the toggle
+        // and the panel's outside-click monitor see the same moment.
+        button.sendAction(on: [.leftMouseDown, .rightMouseDown])
         panel.onVisibilityChange = { [weak button] isVisible in
             button?.highlight(isVisible)
         }
