@@ -25,7 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let arguments = CommandLine.arguments
         if model.isDryRun {
             // A dry run changes nothing, so it may run beside the real app.
-        } else if let flag = ["--snapshot", "--selftest"].first(where: arguments.contains) {
+        } else if let flag = ["--snapshot", "--selftest", "--readme"].first(where: arguments.contains) {
             print("\(flag): refused. Run it with AUDIO_PRIORITY_DRY_RUN=1 so it cannot change your audio devices.")
             NSApp.terminate(nil)
             return
@@ -33,6 +33,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                   NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).contains(where: { $0 != .current }) {
             // Two copies would both switch devices and each draw a capsule.
             NSApp.terminate(nil)
+            return
+        }
+        // `--readme <folder>` draws the README's pictures from made-up devices and quits.
+        if let flag = arguments.firstIndex(of: "--readme"), arguments.indices.contains(flag + 1) {
+            ReadmePictures.write(model: model, to: URL(fileURLWithPath: arguments[flag + 1]))
             return
         }
         model.start()

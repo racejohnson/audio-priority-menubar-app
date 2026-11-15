@@ -4,7 +4,7 @@ BUNDLE_ID := com.racejohnson.audio-priority
 APP := .build/$(NAME).app
 INSTALLED := /Applications/$(NAME).app
 
-.PHONY: all test app install run dry-run snapshot selftest icon clean
+.PHONY: all test app install run dry-run snapshot selftest readme icon clean
 
 all: test app
 
@@ -56,6 +56,12 @@ snapshot: app
 # slider), as a dry run, then reports. Keep your hands off for five seconds.
 selftest: app
 	AUDIO_PRIORITY_DRY_RUN=1 "$(APP)/Contents/MacOS/AudioPriority" --selftest .build/snapshots
+
+# Redraws the README's pictures in docs/readme from made-up devices, so they
+# do not depend on what is plugged in. Needs rsvg-convert for the app icon.
+readme: app
+	AUDIO_PRIORITY_DRY_RUN=1 "$(APP)/Contents/MacOS/AudioPriority" --readme docs/readme
+	rsvg-convert -w 256 -h 256 Icon/AppIcon.svg -o docs/readme/icon.png
 
 icon:
 	Icon/build-icon.sh

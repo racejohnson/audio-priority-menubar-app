@@ -38,6 +38,7 @@ final class AppModel {
     /// After this the click is too old to act on: a device that connects
     /// later did so for some other reason.
     @ObservationIgnored private var selectOnArrivalEnds: TimeInterval = 0
+    @ObservationIgnored private var demo: Demo?
     /// Apple silicon models are all "MacNN,N", so a built-in battery is what tells a laptop apart.
     private static let hostIsLaptop = hasBuiltInBattery()
 
@@ -66,6 +67,24 @@ final class AppModel {
         refresh()
         launchAtLogin.sync()
         refreshBluetooth()
+    }
+
+    /// A made-up Mac for the README's pictures, so they do not depend on
+    /// what happens to be plugged in.
+    struct Demo {
+        var connected: [AudioDevice]
+        var current: [Role: String]
+        var volume: [Role: Float]
+        var bluetooth: [String: BluetoothDevice]
+    }
+
+    /// Shows `demo` in place of the real devices. Dry run only, and in place
+    /// of `start()`: nothing real is read or listened to afterwards.
+    func show(_ demo: Demo) {
+        guard isDryRun else { return }
+        self.demo = demo
+        bluetooth = demo.bluetooth
+        refresh()
     }
 
     // MARK: What the views read
@@ -252,7 +271,7 @@ final class AppModel {
 
     private func refresh() {
         let bluetoothBefore = Set(connected.compactMap(\.bluetoothAddress))
-        connected = audio.devices().map { device in
+        connected = (demo?.connected ?? audio.devices()).map { device in
             var device = device
             device.productID = device.bluetoothAddress.flatMap { bluetooth[$0]?.productID }
             return device
@@ -293,7 +312,7 @@ final class AppModel {
     }
 
     private func readCurrent() {
-        for role in Role.allCases { current[role] = audio.defaultDevice(role) }
+        for role in Role.allCases { current[role] = demo.map { $0.current[role] } ?? audio.defaultDevice(role) }
     }
 
     private func rebuild() {
@@ -305,7 +324,9 @@ final class AppModel {
     private static var now: TimeInterval { TimeInterval(clock_gettime_nsec_np(CLOCK_MONOTONIC)) / 1e9 }
 
     private func readVolume() {
-        for role in Role.allCases { volume[role] = currentDevice(role).flatMap { audio.volume($0.id) } }
+        for role in Role.allCases {
+            volume[role] = currentDevice(role).flatMap { device in demo.map { $0.volume[role] } ?? audio.volume(device.id) }
+        }
     }
 
     private func run(_ event: SwitchEngine.Event) {
@@ -359,6 +380,7 @@ final class AppModel {
 
     /// Reads the paired devices and their battery levels (about a second).
     func loadBluetooth() async {
+        guard demo == nil else { return }
         // A failed read keeps the last good report.
         guard let report = await Bluetooth.report(), report != bluetooth else { return }
         let products = { (devices: [String: BluetoothDevice]) in devices.compactMapValues(\.productID) }

@@ -1,58 +1,123 @@
-# Audio Priority
+<p align="center">
+  <img src="docs/readme/icon.png" width="128" height="128" alt="Audio Priority app icon">
+</p>
 
-A small macOS menu-bar app that keeps your audio on the devices you rank first. You order your outputs and your microphones once; it switches to the top one that is connected, and takes the microphone back when AirPods or macOS grab it.
+<h1 align="center">Audio Priority</h1>
 
-Private app for one Mac: no update channel, no notarisation. macOS 26 or later.
+<p align="center">
+  Keeps your sound on the headphones, speakers and microphone you rank first.
+</p>
 
-## What it does
+<p align="center">
+  macOS 26 or later &nbsp;·&nbsp; GPL-3.0
+</p>
 
-- **Ranked lists.** One for output (headphones always rank above speakers) and one for input. Drag a row to re-rank it.
-- **Auto Switch.** Each list uses its first connected device. A device you click stays until it disconnects or a higher-ranked one connects. Hiding or re-ranking other devices leaves it alone; dragging a new device to the top of the list ends it.
-- **AirPods handling.** When AirPods or macOS move the output on their own, it is switched back once; if macOS takes it again within 30 seconds it is left there, because each round trip is a gap in the sound. The microphone is always taken back, so a call never ends up on the AirPods microphone. Only if another app retakes it within a second, three times in a row, does the app pause for 30 seconds.
-- **Auto off.** Devices stay where you put them. A device you connect may take the output; the microphone is still held. The capsule fills solid.
-- **The capsule.** The menu-bar item shows the output device on the left and the input device on the right, using macOS's own symbols (and one custom glyph for the DJI Mic Mini, which macOS calls "Wireless Mic Rx").
-- **Hide.** Hover a row and use ⋯ (or right-click) to hide a device. A hidden device is never chosen automatically and keeps its rank. The footer's "N hidden" link shows hidden devices so you can bring one back.
-- **Bluetooth.** Paired devices the app has seen stay listed while they are off; click one, or Connect, to connect and use it. AirPods show each bud's battery.
-- **Levels.** Two sliders set the output volume and the input level of the devices in use.
+---
 
-Not included, on purpose: profiles, a mute hotkey, Shortcuts, URL commands, notifications, Jabra support, an update checker.
+Put in your AirPods and macOS moves your microphone to them too, so the call you joined with a good microphone carries on with a worse one. Unplug a display and the sound lands on whatever macOS picks next.
+
+Audio Priority fixes the order once. It sits in your menu bar with two lists, one for where sound comes out and one for your microphone. Rank your devices, and it switches to the first one that's connected and takes the microphone back whenever macOS or an app moves it.
+
+<p align="center">
+  <img src="docs/readme/panel.png" width="840" alt="The Audio Priority panel open below its menu-bar item, three times: AirPods in use with a DJI microphone held, the AirPods away with the MacBook speakers in use, and Auto Switch turned off in dark mode">
+</p>
+
+- **Your order.** Drag devices into the order you want. Headphones always rank above speakers.
+- **Holds your microphone.** When AirPods connect, the sound follows them and your microphone stays where it was.
+- **Doesn't fight forever.** If macOS moves the output on its own, Audio Priority switches it back once. If macOS takes it again within 30 seconds it's left there, because every round trip is a gap in the sound.
+- **See it at a glance.** The menu-bar item shows the device you hear on the left and your microphone on the right.
+- **Hide what you never use.** A hidden device is never chosen for you and keeps its place in the list.
+- **Bluetooth from the panel.** Paired devices stay listed while they're off. Click one to connect and use it. AirPods show each bud's battery.
+- **Private.** No account, no tracking, and it never connects to the internet.
 
 ## Install
+
+You need macOS 26 or later and [Xcode](https://apps.apple.com/app/xcode/id497799835) 26 or later (free from the App Store). In Terminal, from this folder, run:
 
 ```bash
 make install
 ```
 
-That builds the app, copies it to `/Applications/Audio Priority.app` and opens it. Needs Xcode's command-line tools.
+This builds the app, puts it in your **Applications** folder and opens it. To update later, run `make install` again.
 
-On first launch the devices in use go to the top of their lists, so starting the app changes as little as possible. Open at Login is on by default; turn it off in the panel. The first time you connect or disconnect a Bluetooth device from the panel, macOS asks to let the app use Bluetooth.
+The first time it opens, the devices you're using go to the top of their lists, so nothing switches. **Open at Login** is on from the start.
 
-## Working on it
+## Use it
 
-| Command | What it does |
-|---|---|
-| `make test` | Runs the unit tests for the ranking and switching rules |
-| `make dry-run` | Runs the app reading your real devices, but never switches, changes volume, connects, saves settings or touches the login item. It logs what it would have switched |
-| `make snapshot` | Writes pictures of the panel and capsule to `.build/snapshots`, as a dry run |
-| `make selftest` | Opens the real panel and drives it with synthetic clicks (a row, a drag, the slider), as a dry run. Keep your hands off for five seconds |
-| `make icon` | Rebuilds `AppResources/AppIcon.icns` and `Assets.car` from `Icon/` (needs `rsvg-convert`) |
+Audio Priority has no Dock icon; it lives in your menu bar. Click the item to open the panel, and click it again to close it.
 
-Layout:
+- **The two bars at the top** show the device in use for output and for input. Drag across one to set the volume or the microphone level.
+- **Click a device** to use it. It stays in use until it disconnects or a device ranked above it connects.
+- **Drag a device** up or down to change its rank.
+- **Hover a device and click ⋯** (or right-click it) to hide it, move it, connect or disconnect it, or move an output between headphones and speakers.
+- **The hidden link** at the bottom, such as "1 hidden", shows the devices you've hidden so you can bring one back.
+- **Auto Switch**: on, each list uses its first connected device. Off, devices stay where you put them; a device you connect may still take the output, and your microphone is still held.
+- **Open at Login**: on by default.
+- **Quit**.
+
+The item shows <img src="docs/readme/capsule-auto.png" height="20" alt="a soft capsule holding an AirPods symbol and a microphone symbol"> while Auto Switch is on, and fills in <img src="docs/readme/capsule-manual.png" height="20" alt="a solid capsule with the same two symbols cut out of it"> when it's off.
+
+From the keyboard: Tab moves between devices, Return uses one, and Option-Up and Option-Down change its rank. Esc closes the panel.
+
+## Questions
+
+**Will it change anything when I first open it?**
+No. The devices in use go to the top of their lists and stay in use.
+
+**Why did it leave the sound on my AirPods?**
+macOS moved the output to them twice within 30 seconds, so Audio Priority stopped switching back. The panel says so. Click the device you want and it switches.
+
+**Does it ever give up on the microphone?**
+Only for a moment. If another app takes the microphone back within a second, three times in a row, Audio Priority waits 30 seconds and then takes it again.
+
+**I clicked a device but a different one took over.**
+A device you click stays until it disconnects or a device ranked above it connects. Dragging a different device to the top of the list also ends it. Hiding or moving other devices doesn't.
+
+**Why does macOS ask to let it use Bluetooth?**
+Only to connect and disconnect devices from the panel. It asks the first time you do that. Battery levels don't need it.
+
+**Why is one of the bars at the top empty?**
+That device has no volume or level control of its own, so there's nothing to drag.
+
+**What's "Wireless Mic Rx"?**
+The DJI Mic Mini's receiver, by the name macOS gives it. It gets its own symbol.
+
+**How do I start over?**
+Quit the app and run `defaults delete com.racejohnson.audio-priority` in Terminal. The lists are rebuilt the next time it opens.
+
+**How do I uninstall it?**
+Open the panel, turn off **Open at Login** and click **Quit**. Then drag Audio Priority from Applications to the Trash.
+
+## For developers
+
+It's a Swift package; there's no Xcode project.
+
+```bash
+make run        # build a copy in .build and open it
+make test       # run the tests for the ranking and switching rules
+make dry-run    # run against your real devices without switching, saving or connecting anything
+make snapshot   # write pictures of the panel and menu-bar item to .build/snapshots
+make selftest   # open the real panel and drive it with synthetic clicks, as a dry run
+make readme     # redraw this page's pictures from made-up devices
+make icon       # rebuild the app icon from Icon/ (needs rsvg-convert)
+```
+
+Builds are signed ad hoc. **Open at Login** only works for the copy in Applications, so use `make install` to try it.
 
 | Path | What |
 |---|---|
-| `Sources/AudioPriorityCore/` | No CoreAudio here. `SwitchEngine` decides what each role should be on; `PriorityStore` keeps the ranked lists, hidden devices and switches; `DeviceGlyph` maps a device to its symbol |
-| `Sources/AudioPriority/` | The app: `AudioSystem` (CoreAudio), `Bluetooth`, `AppModel`, the capsule (`StatusItemController`, `Glyphs`) and the panel (`PanelController`, `PanelView`) |
+| `Sources/AudioPriorityCore/` | No CoreAudio here. `SwitchEngine` decides what each role should be on; `PriorityStore` keeps the ranked lists and hidden devices; `DeviceGlyph` maps a device to its symbol |
+| `Sources/AudioPriority/` | The app: `AudioSystem` (CoreAudio), `Bluetooth`, `AppModel`, the menu-bar item (`StatusItemController`, `Glyphs`) and the panel (`PanelController`, `PanelView`) |
 | `Tests/AudioPriorityTests/` | The rules as tests: start here to see what the app promises |
-| `Icon/` | The app icon's drawings (Night, from round 4) and build script |
-| `docs/` | The design rounds that led here, each a clickable page |
+| `Icon/` | The app icon's drawings and build script |
+| `docs/` | The design rounds that led here, each a clickable page, and this page's pictures in `docs/readme/` |
 
-Settings live in the app's defaults (`defaults read com.racejohnson.audio-priority`). Deleting that domain resets the lists. If saved settings ever cannot be read, the app starts with fresh lists and keeps the unreadable copy under the `settings.unreadable` key.
+Settings live in the app's defaults (`defaults read com.racejohnson.audio-priority`). If saved settings can't be read, the app starts with fresh lists and keeps the unreadable copy under the `settings.unreadable` key.
 
-## Credits and licence
+Left out on purpose: profiles, a mute hotkey, Shortcuts, URL commands, notifications, Jabra support, an update checker. This is a private app for one Mac, with no update channel and no notarization.
 
-GPL-3.0; see `LICENSE`.
+## License
 
-The switching rules, the headphone keyword list and the Control Center check are from [Audio Priority Bar](https://github.com/camguillory/Audio-Priority-Bar) by Camille Guillory, itself a continuation of [AudioPriorityBar](https://github.com/tobi/AudioPriorityBar) by Tobias Lütke, both GPL-3.0. This app is a smaller rewrite of those rules, not a fork: the code here is new, and the files that carry their logic say so. `PanelController.swift` and `LaunchAtLogin.swift` are from DayNight, by the same author as this app.
+[GPL-3.0](LICENSE). The switching rules, the headphone keyword list and the Control Center check are from [Audio Priority Bar](https://github.com/camguillory/Audio-Priority-Bar) by Camille Guillory, itself a continuation of [AudioPriorityBar](https://github.com/tobi/AudioPriorityBar) by Tobias Lütke, both GPL-3.0. This app is a smaller rewrite of those rules, not a fork: the code here is new, and the files that carry their logic say so. `PanelController.swift` and `LaunchAtLogin.swift` are from [DayNight](https://github.com/racejohnson/daynight-menubar-app), by the same author.
 
-The app icon's direction came from the equalizer icon of [audio-priority](https://github.com/mateusbadalotti/audio-priority) by Mateus Badalotti; the drawing is new.
+The app icon's direction came from the equalizer icon of [audio-priority](https://github.com/mateusbadalotti/audio-priority) by Mateus Badalotti; the drawing is new. Audio Priority is an independent project, not affiliated with or endorsed by Apple or DJI.

@@ -104,9 +104,10 @@ private struct SwitchRow: View {
     let title: String
     var hint: String?
     @Binding var isOn: Bool
+    @Environment(\.drawsSwitchesForPictures) private var drawsSwitch
 
     var body: some View {
-        Toggle(isOn: $isOn) {
+        let toggle = Toggle(isOn: $isOn) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(title)
                 if let hint {
@@ -117,8 +118,36 @@ private struct SwitchRow: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .toggleStyle(.switch)
-        .controlSize(.mini)
+        if drawsSwitch {
+            toggle.toggleStyle(DrawnSwitchStyle())
+        } else {
+            toggle.toggleStyle(.switch).controlSize(.mini)
+        }
+    }
+}
+
+extension EnvironmentValues {
+    /// True in the off-screen pictures (`--snapshot`, `--readme`), where the
+    /// system switch draws grey because its window is not the key window.
+    @Entry var drawsSwitchesForPictures = false
+}
+
+/// A stand-in for the system's mini switch as it looks in the open panel.
+private struct DrawnSwitchStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack {
+            configuration.label
+            Capsule()
+                .fill(configuration.isOn ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.primary.opacity(0.16)))
+                .frame(width: 36, height: 17)
+                .overlay(alignment: configuration.isOn ? .trailing : .leading) {
+                    Capsule()
+                        .fill(.white)
+                        .frame(width: 22, height: 13)
+                        .shadow(color: .black.opacity(0.15), radius: 1, y: 0.5)
+                        .padding(2)
+                }
+        }
     }
 }
 

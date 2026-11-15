@@ -29,19 +29,31 @@ enum Snapshot {
     }
 
     private static func panel(_ model: AppModel, dark: Bool, to url: URL) {
+        try? render(model, dark: dark)?.representation(using: .png, properties: [:])?.write(to: url)
+    }
+
+    /// The panel's content on a flat stand-in for the glass, at the display's scale.
+    static func render(_ model: AppModel, dark: Bool) -> NSBitmapImageRep? {
         let appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         let view = PanelView(model: model)
-            .background(Color(nsColor: dark ? NSColor(white: 0.14, alpha: 1) : NSColor(white: 0.95, alpha: 1)))
+            .background(Color(nsColor: backdrop(dark: dark)))
             .environment(\.colorScheme, dark ? .dark : .light)
+            // System switches draw grey in a window that is not on screen.
+            .environment(\.drawsSwitchesForPictures, true)
         let host = NSHostingView(rootView: view)
         host.appearance = appearance
         let window = NSWindow(contentRect: NSRect(origin: .zero, size: host.fittingSize), styleMask: .borderless, backing: .buffered, defer: false)
         window.appearance = appearance
         window.contentView = host
         host.layoutSubtreeIfNeeded()
-        guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { return }
+        guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { return nil }
         host.cacheDisplay(in: host.bounds, to: rep)
-        try? rep.representation(using: .png, properties: [:])?.write(to: url)
+        return rep
+    }
+
+    /// The colour `render` puts behind the panel.
+    static func backdrop(dark: Bool) -> NSColor {
+        dark ? NSColor(white: 0.14, alpha: 1) : NSColor(white: 0.95, alpha: 1)
     }
 
     /// The capsule at 4×, on a light and a dark menu bar.

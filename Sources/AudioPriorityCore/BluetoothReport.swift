@@ -34,6 +34,14 @@ public struct BluetoothDevice: Equatable, Sendable {
     public var isConnected: Bool
     public var battery: Battery?
     public var productID: Int?
+
+    public init(name: String, address: String, isConnected: Bool, battery: Battery? = nil, productID: Int? = nil) {
+        self.name = name
+        self.address = address
+        self.isConnected = isConnected
+        self.battery = battery
+        self.productID = productID
+    }
 }
 
 /// Reads `system_profiler -json SPBluetoothDataType`, which needs no
