@@ -13,7 +13,7 @@ Each option was drawn, critiqued against the reference icons rendered as macOS 2
 | Option | What it is |
 |---|---|
 | Bold (recommended before the pick) | Today's Peaks distilled: four chunky flat segments a side instead of six thin glassy ones, unlit ones dimmed, on today's blue tile, filling 60% of it |
-| **Night** (Race's pick) | Bright blue output (full) and violet input on a black tile; the best read at 16 px. Picked with one more level: five segments a side, input lit three of five. The small cut stays at three a side |
+| **Night** (Race's pick) | Bright blue output (full) and violet input on a black tile; the best read at 16 px. Picked with one more level (five segments a side, input lit three of five) and Bold's margins around the meter. The small cut stays at three a side |
 | Blend | The colour moves to the tile: a blue-to-violet sweep with a plain white meter on top |
 | Daylight | Blue and violet pills on a white tile, in the spirit of Time Machine |
 | Duo | Three wide segments a side in blue and violet on today's navy |
@@ -41,4 +41,4 @@ To ship one: copy its three files over `Icon/AppIcon.svg`, `Icon/AppIcon-small.s
 
 | # | Decision | Recommended | Race's choice |
 |---|---|---|---|
-| 1 | App icon | Bold | **Night, with a fifth level** (shipped to `Icon/`) |
+| 1 | App icon | Bold | **Night, with a fifth level and Bold's margins** (shipped to `Icon/`) |

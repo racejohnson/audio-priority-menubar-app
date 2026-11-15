@@ -10,8 +10,9 @@ export const meta = {
 
 // Geometry in 1024 space. Two columns, five rows, centred on 512.
 const ROWS = 5;
-const COL_W = 248, GAP_X = 64;
-const SEG_H = 84, GAP_Y = 44, RX = 32;
+// Sized like Bold: the glyph is about 516 x 512 in the 824 tile, so it has room to breathe.
+const COL_W = 208, GAP_X = 100;
+const SEG_H = 72, GAP_Y = 38, RX = 28;
 const LEFT_LIT = 5, RIGHT_LIT = 3;
 
 const glyphW = COL_W * 2 + GAP_X;
