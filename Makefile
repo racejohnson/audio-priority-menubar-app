@@ -36,7 +36,10 @@ install: app
 	/usr/bin/codesign --verify --deep --strict --verbose=2 "$(INSTALLED)"
 	/usr/bin/open "$(INSTALLED)"
 
+# Quits the installed copy first: the app refuses to run beside another copy of itself.
 run: app
+	-/usr/bin/osascript -e 'if application id "$(BUNDLE_ID)" is running then tell application id "$(BUNDLE_ID)" to quit'
+	-@for i in $$(seq 1 50); do /usr/bin/pgrep -xq AudioPriority || break; /bin/sleep 0.1; done
 	/usr/bin/open "$(APP)"
 
 # Runs the app without changing the Mac's audio devices or its saved settings:

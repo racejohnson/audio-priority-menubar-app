@@ -12,6 +12,17 @@ public struct Settings: Codable, Equatable, Sendable {
     public var launchAtLogin = true
 
     public init() {}
+
+    /// A field missing from older or newer saved settings takes its default,
+    /// so adding one never throws the lists away.
+    public init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        order = try values.decodeIfPresent([String: [String]].self, forKey: .order) ?? [:]
+        hidden = try values.decodeIfPresent(Set<String>.self, forKey: .hidden) ?? []
+        known = try values.decodeIfPresent([String: KnownDevice].self, forKey: .known) ?? [:]
+        auto = try values.decodeIfPresent(Bool.self, forKey: .auto) ?? true
+        launchAtLogin = try values.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? true
+    }
 }
 
 /// The ranked lists and the hidden set. A hidden device keeps its rank.
@@ -23,8 +34,22 @@ public final class PriorityStore {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        settings = defaults.data(forKey: Self.key).flatMap { try? JSONDecoder().decode(Settings.self, from: $0) } ?? Settings()
+        guard let data = defaults.data(forKey: Self.key) else {
+            settings = Settings()
+            return
+        }
+        do {
+            settings = try JSONDecoder().decode(Settings.self, from: data)
+        } catch {
+            // Start over, but keep what could not be read: the next save would
+            // otherwise replace the ranked lists for good.
+            settings = Settings()
+            if defaults.data(forKey: Self.unreadableKey) == nil { defaults.set(data, forKey: Self.unreadableKey) }
+        }
     }
+
+    /// Where settings that could not be read are kept, for recovery by hand.
+    public static let unreadableKey = "settings.unreadable"
 
     private func save() {
         defaults.set(try? JSONEncoder().encode(settings), forKey: Self.key)

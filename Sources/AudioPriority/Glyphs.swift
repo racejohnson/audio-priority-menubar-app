@@ -24,7 +24,9 @@ enum Glyphs {
     /// The DJI Mic Mini transmitter on an 18-unit grid, after Race's drawing:
     /// a rounded-square body with three slots centred near the top, and a
     /// sliver of the magnetic clip behind the top-left corner. `small` is the
-    /// cut for the menu bar: wider slots and a wider gap to the clip.
+    /// bolder cut, with wider slots and a wider gap to the clip, for small
+    /// sizes: the panel rows (11 pt and below, chosen in `image`) and the
+    /// menu-bar capsule, which asks for it directly.
     static func djiMicMini(size: CGFloat, small: Bool) -> NSImage {
         let image = Bitmap.draw(width: size, height: size) { context in
             let unit = size / 18
@@ -84,26 +86,29 @@ enum Glyphs {
     }
 }
 
-/// Draws into a bitmap at 3×, so the result is sharp on any display and is a
-/// plain value that can be handed around.
+/// Draws into bitmaps at 1×, 2× and 3×, so a display of any density gets a
+/// copy made for it and nothing is resampled. The result is a plain value
+/// that can be handed around.
 @MainActor
 enum Bitmap {
-    static func draw(width: CGFloat, height: CGFloat, scale: CGFloat = 3, _ body: (CGContext) -> Void) -> NSImage {
+    static func draw(width: CGFloat, height: CGFloat, scales: [CGFloat] = [1, 2, 3], _ body: (CGContext) -> Void) -> NSImage {
         let size = CGSize(width: width, height: height)
         let image = NSImage(size: size)
-        guard let rep = NSBitmapImageRep(
-            bitmapDataPlanes: nil, pixelsWide: Int((width * scale).rounded(.up)), pixelsHigh: Int((height * scale).rounded(.up)),
-            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
-            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
-        ) else { return image }
-        // Set before the context is made, so drawing is in points, not pixels.
-        rep.size = size
-        guard let context = NSGraphicsContext(bitmapImageRep: rep) else { return image }
-        NSGraphicsContext.saveGraphicsState()
-        NSGraphicsContext.current = context
-        body(context.cgContext)
-        NSGraphicsContext.restoreGraphicsState()
-        image.addRepresentation(rep)
+        for scale in scales {
+            guard let rep = NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: Int((width * scale).rounded(.up)), pixelsHigh: Int((height * scale).rounded(.up)),
+                bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+            ) else { continue }
+            // Set before the context is made, so drawing is in points, not pixels.
+            rep.size = size
+            guard let context = NSGraphicsContext(bitmapImageRep: rep) else { continue }
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = context
+            body(context.cgContext)
+            NSGraphicsContext.restoreGraphicsState()
+            image.addRepresentation(rep)
+        }
         return image
     }
 }

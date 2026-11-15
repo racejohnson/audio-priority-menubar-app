@@ -9,14 +9,13 @@ struct PanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if !model.auto { Banner(text: "Auto is off. Devices stay where you put them.") }
+            if !model.auto { Banner(text: "Auto Switch is off. Devices stay where you put them.") }
             if let note = model.takeoverNote { Banner(text: note) }
 
             VStack(spacing: 8) {
                 LevelSlider(model: model, role: .output)
                 LevelSlider(model: model, role: .input)
             }
-            .padding(.horizontal, 2)
             .padding(.bottom, 6)
 
             DeviceSection(model: model, role: .output, title: "Output", hint: "headphones first")
@@ -27,7 +26,7 @@ struct PanelView: View {
             VStack(spacing: 8) {
                 SwitchRow(
                     title: "Auto Switch",
-                    hint: model.auto ? "Uses your top-ranked devices" : "Off: devices stay where you put them",
+                    hint: model.auto ? "Uses your top-ranked devices" : "The microphone is still held",
                     isOn: Binding(get: { model.auto }, set: model.setAuto)
                 )
                 LaunchAtLoginRow(launchAtLogin: model.launchAtLogin)
@@ -65,6 +64,16 @@ extension Color {
     }
 }
 
+// MARK: Motion
+
+@MainActor
+enum Motion {
+    /// The panel's one animation, or none when the user has asked macOS to reduce motion.
+    static var glide: Animation? {
+        NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? nil : .snappy(duration: 0.2)
+    }
+}
+
 // MARK: Small pieces
 
 private struct Rule: View {
@@ -87,7 +96,6 @@ private struct Banner: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
             .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(.primary.opacity(0.075)))
-            .padding(.horizontal, 2)
             .padding(.bottom, 8)
     }
 }
@@ -148,7 +156,7 @@ private struct Footer: View {
             if hidden > 0 {
                 Text(" · ").foregroundStyle(.secondary)
                 Button("\(hidden) hidden") {
-                    withAnimation(.snappy(duration: 0.2)) { model.showsHidden.toggle() }
+                    withAnimation(Motion.glide) { model.showsHidden.toggle() }
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.tint)
@@ -181,11 +189,12 @@ private struct LevelSlider: View {
         GeometryReader { geometry in
             let width = geometry.size.width * CGFloat(level ?? 0)
             ZStack(alignment: .leading) {
-                Capsule().fill(.primary.opacity(0.08))
+                // A device with no level of its own gets a fainter, empty track.
+                Capsule().fill(.primary.opacity(level == nil ? 0.05 : 0.08))
                 // The label is drawn twice, each copy clipped to its own side of
                 // the edge, so the text stays readable across it and neither
                 // copy shows through the other.
-                label(device)
+                label(device, hasLevel: level != nil)
                     .foregroundStyle(.primary)
                     .mask(alignment: .trailing) { Rectangle().frame(width: max(geometry.size.width - width, 0)) }
                 // White in both appearances, as in Control Center. A plain
@@ -193,7 +202,7 @@ private struct LevelSlider: View {
                 Rectangle()
                     .fill(Color.white.opacity(0.92))
                     .frame(width: width)
-                label(device)
+                label(device, hasLevel: level != nil)
                     .foregroundStyle(Color.black)
                     .mask(alignment: .leading) { Rectangle().frame(width: width) }
             }
@@ -205,16 +214,28 @@ private struct LevelSlider: View {
             })
         }
         .frame(height: 30)
+        // Focus comes from the keyboard only (Tab, with keyboard navigation
+        // on), so a click leaves no focus ring behind.
+        .focusable(level != nil, interactions: .activate)
+        .onKeyPress(keys: [.leftArrow, .rightArrow, .upArrow, .downArrow]) { press in
+            guard let level else { return .ignored }
+            // A sixteenth, as the volume keys step; Option steps by one percent.
+            let step: Float = press.modifiers.contains(.option) ? 0.01 : 1.0 / 16
+            let isUp = press.key == .rightArrow || press.key == .upArrow
+            model.setVolume(min(max(level + (isUp ? step : -step), 0), 1), role)
+            return .handled
+        }
         .accessibilityRepresentation {
             Slider(value: Binding(get: { Double(level ?? 0) }, set: { model.setVolume(Float($0), role) })) {
                 Text(role == .output ? "Output volume, \(device?.name ?? "no output")" : "Input level, \(device?.name ?? "no microphone")")
             }
             .disabled(level == nil)
         }
-        .help(level == nil && device != nil ? "\(device?.name ?? "") has no level control of its own" : "")
+        // The name in full, since a long one is cut short in the slider.
+        .help(device.map { level == nil ? "\($0.name) has no \(role == .output ? "volume" : "input level") control of its own" : $0.name } ?? "")
     }
 
-    private func label(_ device: AudioDevice?) -> some View {
+    private func label(_ device: AudioDevice?, hasLevel: Bool) -> some View {
         HStack(spacing: 8) {
             GlyphView(
                 key: device.map(model.glyph(for:)) ?? .symbol(role == .output ? "speaker.slash.fill" : "mic.slash.fill"),
@@ -225,9 +246,11 @@ private struct LevelSlider: View {
                 .font(.system(size: 11.5, weight: .medium))
                 .lineLimit(1)
             Spacer(minLength: 4)
-            Image(systemName: role == .output ? "speaker.wave.2.fill" : "mic.fill")
-                .font(.system(size: 10, weight: .semibold))
-                .opacity(0.6)
+            if hasLevel {
+                Image(systemName: role == .output ? "speaker.wave.2.fill" : "mic.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                    .opacity(0.6)
+            }
         }
         .padding(.leading, 8)
         .padding(.trailing, 11)
@@ -298,7 +321,7 @@ private struct RankedRows: View {
                 DeviceRow(model: model, device: device, rank: firstRank + index, isLifted: isDragged)
                     .offset(y: offset(of: index, count: list.count, target: target))
                     .zIndex(isDragged ? 1 : 0)
-                    .animation(isDragged ? nil : .snappy(duration: 0.2), value: target)
+                    .animation(isDragged ? nil : Motion.glide, value: target)
                     .gesture(DragGesture(minimumDistance: 6)
                         .onChanged { value in
                             drag = Drag(id: device.id, from: drag?.id == device.id ? drag?.from ?? index : index, offset: value.translation.height)
@@ -308,7 +331,7 @@ private struct RankedRows: View {
                             let destination = self.target(of: ended, count: list.count)
                             drag = nil
                             if destination != ended.from {
-                                withAnimation(.snappy(duration: 0.2)) { model.move(device, toVisibleIndex: destination) }
+                                withAnimation(Motion.glide) { model.move(device, toVisibleIndex: destination) }
                             }
                         })
             }
@@ -366,6 +389,7 @@ private struct DeviceRow: View {
                 Text(device.name)
                     .font(.system(size: 13, weight: isCurrent ? .semibold : .medium))
                     .lineLimit(1)
+                    .help(device.name)
                 detail
                     .font(.system(size: 11))
                     .foregroundStyle(isCurrent ? AnyShapeStyle(.white.opacity(0.8)) : AnyShapeStyle(.secondary))
@@ -375,15 +399,25 @@ private struct DeviceRow: View {
             .opacity(isDimmed ? 0.42 : 1)
 
             Spacer(minLength: 2)
-            trailing(isCurrent: isCurrent, isHidden: isHidden)
+            trailing(isHidden: isHidden)
+                // Room for ⋯ only while it shows, so a long name gets the full row at rest.
+                .padding(.trailing, isHovering && !isHidden ? 22 : 0)
         }
         .padding(.horizontal, 8)
         .frame(height: Self.height)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(isCurrent ? AnyShapeStyle(Color.role(device.role)) : AnyShapeStyle(.primary.opacity(isHovering || isLifted || isFocused ? 0.055 : 0)))
-                .shadow(color: .black.opacity(isLifted ? 0.18 : 0), radius: 6, y: 2)
-        )
+        .overlay(alignment: .trailing) {
+            if !isHidden { actions(isCurrent: isCurrent).padding(.trailing, 8) }
+        }
+        .background {
+            let shape = RoundedRectangle(cornerRadius: 10, style: .continuous)
+            ZStack {
+                // A lifted row is solid, so the rows it passes do not show through it.
+                if isLifted, !isCurrent { shape.fill(Color(nsColor: .windowBackgroundColor)) }
+                shape.fill(isCurrent ? AnyShapeStyle(Color.role(device.role)) : AnyShapeStyle(.primary.opacity(isHovering || isLifted || isFocused ? 0.055 : 0)))
+            }
+            .compositingGroup()
+            .shadow(color: .black.opacity(isLifted ? 0.22 : 0), radius: 6, y: 2)
+        }
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
         .onTapGesture { if !isHidden { model.select(device) } }
@@ -398,14 +432,36 @@ private struct DeviceRow: View {
             return .handled
         }
         .onKeyPress(keys: [.upArrow, .downArrow]) { press in
-            // Option-Up and Option-Down re-rank; plain arrows move the focus.
+            // Option-Up and Option-Down re-rank; Tab moves between rows.
             guard press.modifiers.contains(.option) else { return .ignored }
-            withAnimation(.snappy(duration: 0.2)) { model.move(device, by: press.key == .upArrow ? -1 : 1) }
+            withAnimation(Motion.glide) { model.move(device, by: press.key == .upArrow ? -1 : 1) }
             return .handled
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(device.name), \(isHidden ? "hidden" : isCurrent ? "in use" : model.detail(for: device))\(rank.map { ", rank \($0)" } ?? "")")
+        .accessibilityLabel(spokenLabel(isCurrent: isCurrent, isHidden: isHidden))
+        // What the ⋯ menu offers, for VoiceOver's actions rotor.
+        .accessibilityActions {
+            if isHidden {
+                Button("Show") { model.setHidden(false, device) }
+            } else {
+                if model.canMove(device, by: -1) { Button("Move Up") { model.move(device, by: -1) } }
+                if model.canMove(device, by: 1) { Button("Move Down") { model.move(device, by: 1) } }
+                Button("Hide") { model.setHidden(true, device) }
+            }
+        }
         .accessibilityAddTraits(isCurrent ? [.isButton, .isSelected] : .isButton)
+    }
+
+    private func spokenLabel(isCurrent: Bool, isHidden: Bool) -> String {
+        let battery = device.isConnected && !isHidden && !model.isConnecting(device) ? model.battery(for: device)?.text : nil
+        let state = if isHidden {
+            "hidden"
+        } else if isCurrent {
+            "in use" + (battery.map { ", battery \($0)" } ?? "")
+        } else {
+            battery.map { "battery \($0)" } ?? model.detail(for: device)
+        }
+        return "\(device.name), \(state)\(rank.map { ", rank \($0)" } ?? "")"
     }
 
     @ViewBuilder private var detail: some View {
@@ -422,19 +478,22 @@ private struct DeviceRow: View {
     }
 
     @ViewBuilder
-    private func trailing(isCurrent: Bool, isHidden: Bool) -> some View {
+    private func trailing(isHidden: Bool) -> some View {
         if isHidden {
             Button("Show") {
-                withAnimation(.snappy(duration: 0.2)) { model.setHidden(false, device) }
+                withAnimation(Motion.glide) { model.setHidden(false, device) }
             }
             .buttonStyle(PillButtonStyle())
-        } else {
-            if model.isConnecting(device) {
-                ProgressView().controlSize(.small)
-            } else if model.canConnect(device) {
-                Button("Connect") { model.select(device) }
-                    .buttonStyle(PillButtonStyle())
-            }
+        } else if model.isConnecting(device) {
+            ProgressView().controlSize(.small)
+        } else if model.canConnect(device) {
+            Button("Connect") { model.select(device) }
+                .buttonStyle(PillButtonStyle())
+        }
+    }
+
+    /// The ⋯ button, which shows while the pointer is on the row.
+    private func actions(isCurrent: Bool) -> some View {
             Menu {
                 DeviceMenu(model: model, device: device)
             } label: {
@@ -451,7 +510,6 @@ private struct DeviceRow: View {
             .opacity(isHovering ? 1 : 0)
             .help("Actions for \(device.name)")
             .accessibilityLabel("Actions for \(device.name)")
-        }
     }
 
     private static func batterySymbol(_ level: Int) -> String {
@@ -482,18 +540,18 @@ private struct DeviceMenu: View {
                     .disabled(model.isConnecting(device))
             }
             Divider()
-            Button("Move Up") { withAnimation(.snappy(duration: 0.2)) { model.move(device, by: -1) } }
+            Button("Move Up") { withAnimation(Motion.glide) { model.move(device, by: -1) } }
                 .disabled(!model.canMove(device, by: -1))
-            Button("Move Down") { withAnimation(.snappy(duration: 0.2)) { model.move(device, by: 1) } }
+            Button("Move Down") { withAnimation(Motion.glide) { model.move(device, by: 1) } }
                 .disabled(!model.canMove(device, by: 1))
             if device.role == .output {
                 let other: DeviceCategory = device.category == .headphones ? .speakers : .headphones
                 Button(other == .headphones ? "Rank with Headphones" : "Rank with Speakers") {
-                    withAnimation(.snappy(duration: 0.2)) { model.setCategory(other, device) }
+                    withAnimation(Motion.glide) { model.setCategory(other, device) }
                 }
             }
             Divider()
-            Button("Hide") { withAnimation(.snappy(duration: 0.2)) { model.setHidden(true, device) } }
+            Button("Hide") { withAnimation(Motion.glide) { model.setHidden(true, device) } }
         }
     }
 }

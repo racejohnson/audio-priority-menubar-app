@@ -163,8 +163,9 @@ private final class FloatingPanel: NSPanel {
     }
 
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        if event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command,
-           event.charactersIgnoringModifiers == "q" {
+        // Caps Lock is a modifier flag too, and must not stop ⌘Q.
+        if event.modifierFlags.intersection([.command, .shift, .option, .control]) == .command,
+           event.charactersIgnoringModifiers?.lowercased() == "q" {
             NSApp.terminate(nil)
             return true
         }

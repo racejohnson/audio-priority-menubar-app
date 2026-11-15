@@ -36,11 +36,14 @@ public enum DeviceGlyph {
         if name.contains("homepod") { return .symbol("homepod.fill") }
         if name.contains("iphone") { return .symbol("iphone") }
         if name.contains("ipad") { return .symbol("ipad") }
+        // A display's speakers and microphone, whatever they are wired through.
+        if name.contains("display") { return .symbol("display") }
         switch device.transport {
         case .builtIn: return .symbol(hostIsLaptop ? "laptopcomputer" : "desktopcomputer")
         case .displayPort: return .symbol("display")
         case .thunderbolt where device.role == .output: return .symbol("display")
         case .hdmi: return .symbol("tv")
+        case .airPlay: return .symbol("airplayaudio")
         default: break
         }
         switch device.category {

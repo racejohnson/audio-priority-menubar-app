@@ -19,8 +19,9 @@ enum Bluetooth {
     }
 
     /// Paired devices with their battery levels, from `system_profiler`,
-    /// which needs no Bluetooth permission. Takes about a second.
-    static func report() async -> [String: BluetoothDevice] {
+    /// which needs no Bluetooth permission. Takes about a second. Nil when
+    /// the tool failed, so the last good report can be kept.
+    static func report() async -> [String: BluetoothDevice]? {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
                 let process = Process()
@@ -33,9 +34,9 @@ enum Bluetooth {
                     try process.run()
                     let data = pipe.fileHandleForReading.readDataToEndOfFile()
                     process.waitUntilExit()
-                    continuation.resume(returning: BluetoothReport.parse(data))
+                    continuation.resume(returning: process.terminationStatus == 0 ? BluetoothReport.parse(data) : nil)
                 } catch {
-                    continuation.resume(returning: [:])
+                    continuation.resume(returning: nil)
                 }
             }
         }

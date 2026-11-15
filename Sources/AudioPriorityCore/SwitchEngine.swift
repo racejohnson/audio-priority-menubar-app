@@ -82,6 +82,8 @@ public struct SwitchEngine: Sendable {
 
     private var previousConnected: [Role: Set<String>]?
     private var previousCurrent: [Role: String] = [:]
+    /// The top of each list as of the last event, to tell a new top from any other re-rank.
+    private var previousTop: [Role: String] = [:]
     private var recentlyAdded: [Role: Set<String>] = [:]
     private var topologyChangedAt: [Role: TimeInterval] = [:]
     private var switchedBackAt: [Role: TimeInterval] = [:]
@@ -127,12 +129,16 @@ public struct SwitchEngine: Sendable {
             forgetFight(role)
             let ranking = input.ranking[role] ?? []
             if auto {
-                pick[role] = nil
+                // A pick ends when it was hidden, or when the user put a new
+                // device at the top. Any other change to the list leaves it.
+                if let picked = pick[role], !ranking.contains(picked) || ranking.first != previousTop[role] {
+                    pick[role] = nil
+                }
             } else if let device = held[role], !ranking.contains(device) {
                 // The held device was hidden: fall to the list.
                 held[role] = ranking.first
             }
-            if let target = auto ? ranking.first : held[role], target != input.current[role] {
+            if let target = auto ? desired(role, input) : held[role], target != input.current[role] {
                 commands.append(Command(role, target))
             }
 
@@ -146,6 +152,11 @@ public struct SwitchEngine: Sendable {
                 commands.append(Command(.input, target))
             }
         }
+        // What the engine asked for is where the role now is, as far as it
+        // knows. A device that takes the role again before the next report
+        // then counts as a retake, and the limits on fighting apply to it.
+        for command in commands { previousCurrent[command.role] = command.uid }
+        for role in Role.allCases { previousTop[role] = input.ranking[role]?.first }
         return commands
     }
 
@@ -156,6 +167,12 @@ public struct SwitchEngine: Sendable {
         let ranking = input.ranking[role] ?? []
         let current = input.current[role]
         let isLaunch = previousConnected == nil
+        // A takeover is about the device the output is on. Once the output
+        // has left it, the next move to it is switched back once again.
+        if role == .output, let taken = takeover[.output], current != taken {
+            takeover[.output] = nil
+            switchedBackAt[.output] = nil
+        }
         let before = previousConnected?[role] ?? connected
         let arrived = connected.subtracting(before)
         let topologyChanged = arrived != [] || before.subtracting(connected) != []

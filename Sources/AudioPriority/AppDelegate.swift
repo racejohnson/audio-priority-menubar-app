@@ -22,9 +22,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var terminationSignal: (any DispatchSourceSignal)?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let arguments = CommandLine.arguments
+        if model.isDryRun {
+            // A dry run changes nothing, so it may run beside the real app.
+        } else if let flag = ["--snapshot", "--selftest"].first(where: arguments.contains) {
+            print("\(flag): refused. Run it with AUDIO_PRIORITY_DRY_RUN=1 so it cannot change your audio devices.")
+            NSApp.terminate(nil)
+            return
+        } else if let bundleID = Bundle.main.bundleIdentifier,
+                  NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).contains(where: { $0 != .current }) {
+            // Two copies would both switch devices and each draw a capsule.
+            NSApp.terminate(nil)
+            return
+        }
         model.start()
         // `--snapshot <folder>` writes pictures of the panel and capsule and quits.
-        let arguments = CommandLine.arguments
         if let flag = arguments.firstIndex(of: "--snapshot"), arguments.indices.contains(flag + 1) {
             Snapshot.write(model: model, to: URL(fileURLWithPath: arguments[flag + 1]))
             return
@@ -40,7 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// `kill` and `make install` send SIGTERM; route it through the normal quit.
+    /// `kill` sends SIGTERM; route it through the normal quit.
     private func terminateOnSIGTERM() {
         signal(SIGTERM, SIG_IGN)
         let source = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)

@@ -89,6 +89,8 @@ private func device(_ role: Role, _ uid: String, _ name: String, _ category: Dev
         #expect(glyph("MacBook Pro Microphone", .input, .microphones, .builtIn) == .symbol("laptopcomputer"))
         #expect(glyph("Race’s iPhone 17 Pro Microphone", .input, .microphones, .continuity) == .symbol("iphone"))
         #expect(glyph("Studio Display Speakers", .output, .speakers, .thunderbolt) == .symbol("display"))
+        #expect(glyph("Studio Display Microphone", .input, .microphones, .thunderbolt) == .symbol("display"))
+        #expect(glyph("Living Room", .output, .speakers, .airPlay) == .symbol("airplayaudio"))
         #expect(glyph("Scarlett 2i2", .input, .microphones) == .symbol("mic"))
         #expect(glyph("WH-1000XM5", .output, .headphones, .bluetooth) == .symbol("headphones"))
     }
@@ -121,7 +123,8 @@ private func device(_ role: Role, _ uid: String, _ name: String, _ category: Dev
         "device_batteryLevelLeft":"78%","device_batteryLevelRight":"80%","device_productID":"0x201B","device_minorType":"Headphones"}}],
         "device_not_connected":[{"Old Speaker":{"device_address":"AA:BB:CC:DD:EE:FF"}}]}]}
         """
-        let report = BluetoothReport.parse(Data(json.utf8))
+        let report = try #require(BluetoothReport.parse(Data(json.utf8)))
+        #expect(BluetoothReport.parse(Data("not a report".utf8)) == nil)
         let airpods = try #require(report["20F4D45EF339"])
         #expect(airpods.isConnected)
         #expect(airpods.battery == Battery(left: 78, right: 80))

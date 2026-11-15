@@ -48,12 +48,13 @@ enum Snapshot {
     private static func capsules(_ model: AppModel, to url: URL) {
         let face = StatusItemController.face(of: model)
         let capsule = Glyphs.capsule(output: face.output, input: face.input, isManual: face.isManual)
-        let image = Bitmap.draw(width: 144, height: 30, scale: 4) { context in
+        let size = capsule.size, barWidth = capsule.size.width + 24
+        let image = Bitmap.draw(width: barWidth * 2, height: 30, scales: [4]) { context in
             for (index, isDark) in [false, true].enumerated() {
-                let bar = CGRect(x: CGFloat(index) * 72, y: 0, width: 72, height: 30)
+                let bar = CGRect(x: CGFloat(index) * barWidth, y: 0, width: barWidth, height: 30)
                 context.setFillColor(CGColor(gray: isDark ? 0.15 : 0.92, alpha: 1))
                 context.fill(bar)
-                let rect = CGRect(x: bar.midX - 24, y: 6, width: 48, height: 18)
+                let rect = CGRect(x: bar.midX - size.width / 2, y: (bar.height - size.height) / 2, width: size.width, height: size.height)
                 // A template image is one ink: draw it, then tint what was drawn.
                 context.beginTransparencyLayer(in: rect, auxiliaryInfo: nil)
                 capsule.draw(in: rect)

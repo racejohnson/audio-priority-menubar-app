@@ -38,7 +38,8 @@ enum SelfTest {
 
             // The layout from the top of the panel: 10 pt padding, two 30 pt
             // sliders 8 pt apart, then each list's heading and 38 pt rows.
-            let sliderY: CGFloat = 25
+            // The sliders span the panel's 312 pt less that padding.
+            let sliderY: CGFloat = 25, sliderLeft: CGFloat = 10, sliderWidth: CGFloat = 292
             let outputs = model.visibleDevices(.headphones) + model.visibleDevices(.speakers)
             let inputs = model.visibleDevices(.microphones)
             let outputTop: CGFloat = 10 + 30 + 8 + 30 + 6 + 20
@@ -47,11 +48,11 @@ enum SelfTest {
 
             // 1. The slider follows the pointer.
             if model.volume[.output] != nil {
-                await click(window, x: 78, y: sliderY)
+                await click(window, x: sliderLeft + sliderWidth * 0.25, y: sliderY)
                 let low = model.volume[.output] ?? -1
-                await click(window, x: 234, y: sliderY)
+                await click(window, x: sliderLeft + sliderWidth * 0.75, y: sliderY)
                 let high = model.volume[.output] ?? -1
-                check("slider", abs(low - 0.25) < 0.05 && abs(high - 0.75) < 0.05, "a click at 25% gave \(low), at 75% gave \(high)")
+                check("slider", abs(low - 0.25) < 0.01 && abs(high - 0.75) < 0.01, "a click at 25% gave \(low), at 75% gave \(high)")
             } else {
                 print("selftest: skip · slider · the output in use has no volume control")
             }

@@ -39,9 +39,11 @@ public struct BluetoothDevice: Equatable, Sendable {
 /// Reads `system_profiler -json SPBluetoothDataType`, which needs no
 /// Bluetooth permission.
 public enum BluetoothReport {
-    public static func parse(_ data: Data) -> [String: BluetoothDevice] {
+    /// Nil when `data` is not a report at all, so a failed run is not taken
+    /// for "no Bluetooth devices".
+    public static func parse(_ data: Data) -> [String: BluetoothDevice]? {
         guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let controllers = root["SPBluetoothDataType"] as? [[String: Any]] else { return [:] }
+              let controllers = root["SPBluetoothDataType"] as? [[String: Any]] else { return nil }
         var devices: [String: BluetoothDevice] = [:]
         for controller in controllers {
             for (key, isConnected) in [("device_connected", true), ("device_not_connected", false)] {

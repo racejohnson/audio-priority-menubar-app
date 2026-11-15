@@ -223,4 +223,107 @@ private struct Mac {
         #expect(mac.send(.systemChanged, to: &engine) == [.init(.input, "dji")])
         #expect(engine.held[.input] == "dji")
     }
+
+    @Test func hidingAnUnrelatedDeviceKeepsThePick() {
+        var mac = Mac(outputs: ["airpods", "speakers", "display"], order: [.output: ["airpods", "speakers", "display"], .input: ["dji"]])
+        mac.inputs = ["dji"]; mac.current[.output] = "airpods"
+        var engine = SwitchEngine(auto: true)
+        mac.send(.systemChanged, to: &engine)
+        mac.send(.userSelected(.output, "speakers"), to: &engine)
+
+        mac.hidden = ["display"]
+        #expect(mac.send(.prioritiesChanged(.output), to: &engine) == [])
+        #expect(engine.pick[.output] == "speakers")
+
+        // Hiding the pick itself falls back to the list.
+        mac.hidden = ["display", "speakers"]
+        #expect(mac.send(.prioritiesChanged(.output), to: &engine) == [.init(.output, "airpods")])
+        #expect(engine.pick[.output] == nil)
+    }
+
+    @Test func aNewTopOfTheListEndsThePick() {
+        var mac = Mac(outputs: ["airpods", "speakers", "display"], order: [.output: ["airpods", "speakers", "display"], .input: ["dji"]])
+        mac.inputs = ["dji"]; mac.current[.output] = "airpods"
+        var engine = SwitchEngine(auto: true)
+        mac.send(.systemChanged, to: &engine)
+        mac.send(.userSelected(.output, "speakers"), to: &engine)
+
+        // Re-ranking below the top leaves the pick alone.
+        mac.order[.output] = ["airpods", "display", "speakers"]
+        #expect(mac.send(.prioritiesChanged(.output), to: &engine) == [])
+
+        mac.order[.output] = ["display", "airpods", "speakers"]
+        #expect(mac.send(.prioritiesChanged(.output), to: &engine) == [.init(.output, "display")])
+        #expect(engine.pick[.output] == nil)
+    }
+
+    @Test func autoOffHidingTheHeldDeviceFallsToTheList() {
+        var mac = Mac(current: [.output: "speakers", .input: "mac-mic"])
+        var engine = SwitchEngine(auto: false)
+        mac.send(.systemChanged, to: &engine)
+        mac.hidden = ["mac-mic"]
+        #expect(mac.send(.prioritiesChanged(.input), to: &engine) == [.init(.input, "dji")])
+        #expect(engine.held[.input] == "dji")
+    }
+
+    @Test func aDeviceTheUserAskedForIsNotSwitchedAwayFromWhenItArrives() {
+        var mac = Mac(outputs: ["sony"], order: [.output: ["sony", "airpods"], .input: ["dji"]])
+        mac.inputs = ["dji"]; mac.current[.output] = "sony"
+        var engine = SwitchEngine(auto: true)
+        mac.send(.systemChanged, to: &engine)
+
+        // The AirPods connect because the user clicked their row, and macOS
+        // moves the output to them. The pick is applied before the report.
+        mac.outputs.append("airpods"); mac.current[.output] = "airpods"
+        #expect(mac.send(.userSelected(.output, "airpods"), to: &engine) == [])
+        #expect(mac.send(.systemChanged, to: &engine) == [])
+        #expect(mac.current[.output] == "airpods")
+    }
+
+    /// The app hears about its own switch up to 100 ms later. A device that
+    /// takes the role back inside that time must still count as a retake.
+    @Test func aRetakeBeforeTheNextReportStillCountsAsAFight() {
+        var mac = Mac()
+        var engine = SwitchEngine(auto: true)
+        mac.send(.systemChanged, to: &engine)
+
+        // The microphone: three fast retakes, each seen with no report in between.
+        var paused = false
+        for _ in 0..<5 where !paused {
+            mac.now += 0.2; mac.current[.input] = "airpods-mic"
+            paused = engine.handle(.systemChanged, mac.input) == []
+        }
+        #expect(paused)
+        #expect(engine.takeover[.input] == "airpods-mic")
+        #expect(engine.microphonePauseEndsAt != nil)
+
+        // The output: switched back once, then left.
+        mac.now += 60; mac.current[.output] = "airpods"; mac.order[.output] = ["speakers", "airpods"]
+        mac.current[.input] = "dji"
+        var fresh = SwitchEngine(auto: true)
+        _ = fresh.handle(.systemChanged, Mac(order: mac.order).input)
+        #expect(fresh.handle(.systemChanged, mac.input) == [.init(.output, "speakers")])
+        mac.now += 5
+        #expect(fresh.handle(.systemChanged, mac.input) == [])
+        #expect(fresh.takeover[.output] == "airpods")
+    }
+
+    @Test func aTakeoverEndsOnceTheOutputLeavesThatDevice() {
+        var mac = Mac(outputs: ["airpods", "speakers", "display"], order: [.output: ["speakers", "airpods", "display"], .input: ["dji"]])
+        mac.inputs = ["dji"]
+        var engine = SwitchEngine(auto: true)
+        mac.send(.systemChanged, to: &engine)
+        mac.now += 60; mac.current[.output] = "airpods"
+        #expect(mac.send(.systemChanged, to: &engine) == [.init(.output, "speakers")])
+        mac.now += 5; mac.current[.output] = "airpods"
+        #expect(mac.send(.systemChanged, to: &engine) == [])
+        #expect(engine.takeover[.output] == "airpods")
+
+        // The output moves on, is put back, and much later the AirPods take it again.
+        mac.now += 60; mac.current[.output] = "display"
+        #expect(mac.send(.systemChanged, to: &engine) == [.init(.output, "speakers")])
+        #expect(engine.takeover[.output] == nil)
+        mac.now += 600; mac.current[.output] = "airpods"
+        #expect(mac.send(.systemChanged, to: &engine) == [.init(.output, "speakers")])
+    }
 }

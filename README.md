@@ -7,7 +7,7 @@ Private app for one Mac: no update channel, no notarisation. macOS 26 or later.
 ## What it does
 
 - **Ranked lists.** One for output (headphones always rank above speakers) and one for input. Drag a row to re-rank it.
-- **Auto Switch.** Each list uses its first connected device. A device you click stays until it disconnects or a higher-ranked one connects.
+- **Auto Switch.** Each list uses its first connected device. A device you click stays until it disconnects or a higher-ranked one connects. Hiding or re-ranking other devices leaves it alone; dragging a new device to the top of the list ends it.
 - **AirPods handling.** When AirPods or macOS move the output on their own, it is switched back once; if macOS takes it again within 30 seconds it is left there, because each round trip is a gap in the sound. The microphone is always taken back, so a call never ends up on the AirPods microphone. Only if another app retakes it within a second, three times in a row, does the app pause for 30 seconds.
 - **Auto off.** Devices stay where you put them. A device you connect may take the output; the microphone is still held. The capsule fills solid.
 - **The capsule.** The menu-bar item shows the output device on the left and the input device on the right, using macOS's own symbols (and one custom glyph for the DJI Mic Mini, which macOS calls "Wireless Mic Rx").
@@ -47,7 +47,7 @@ Layout:
 | `Icon/` | The Peaks app icon's drawings and build script |
 | `docs/` | The three design rounds that led here, each a clickable page |
 
-Settings live in the app's defaults (`defaults read com.racejohnson.audio-priority`). Deleting that domain resets the lists.
+Settings live in the app's defaults (`defaults read com.racejohnson.audio-priority`). Deleting that domain resets the lists. If saved settings ever cannot be read, the app starts with fresh lists and keeps the unreadable copy under the `settings.unreadable` key.
 
 ## Credits and licence
 

@@ -18,6 +18,8 @@ final class AppModel {
     private(set) var bluetooth: [String: BluetoothDevice] = [:]
     /// Bluetooth addresses being connected or disconnected right now.
     private(set) var connecting: Set<String> = []
+    /// Bluetooth addresses whose last connect or disconnect just failed.
+    private(set) var failedToConnect: Set<String> = []
     /// The device macOS keeps moving a role to, which is being left alone.
     private(set) var takeover: [Role: String] = [:]
     var showsHidden = false
@@ -33,6 +35,9 @@ final class AppModel {
     @ObservationIgnored private var batteryTimer: Task<Void, Never>?
     /// A paired device the user clicked while it was off: use it once it connects.
     @ObservationIgnored private var selectOnArrival: DeviceID?
+    /// After this the click is too old to act on: a device that connects
+    /// later did so for some other reason.
+    @ObservationIgnored private var selectOnArrivalEnds: TimeInterval = 0
     /// Apple silicon models are all "MacNN,N", so a built-in battery is what tells a laptop apart.
     private static let hostIsLaptop = hasBuiltInBattery()
 
@@ -109,14 +114,17 @@ final class AppModel {
     func detail(for device: AudioDevice) -> String {
         if isHidden(device) { return device.isConnected ? "Hidden" : "Hidden · not connected" }
         if isConnecting(device) { return device.isConnected ? "Disconnecting…" : "Connecting…" }
+        if let address = device.bluetoothAddress, failedToConnect.contains(address) {
+            return device.isConnected ? "Couldn’t disconnect" : "Couldn’t connect"
+        }
         if !device.isConnected { return canConnect(device) ? "Paired · not connected" : "Not connected" }
         return DeviceGlyph.detail(for: device)
     }
 
     /// What the takeover banner says, if macOS is being left to have its way.
     var takeoverNote: String? {
-        if let name = takeoverName(.output) { return "macOS keeps moving the output to \(name), so it was left there." }
-        if let name = takeoverName(.input) { return "Another app keeps taking the microphone to \(name). Trying again in 30 seconds." }
+        if let name = takeoverName(.output) { return "macOS keeps moving the output to \(name), so it’s left there. Click a device to switch back." }
+        if let name = takeoverName(.input) { return "Another app keeps taking the microphone to \(name), so it’s left there for a moment. Click a device to take it back." }
         return nil
     }
 
@@ -132,6 +140,7 @@ final class AppModel {
             run(.userSelected(device.role, device.uid))
         } else if canConnect(device) {
             selectOnArrival = device.id
+            selectOnArrivalEnds = Self.now + 30
             setConnected(true, device)
         }
     }
@@ -143,12 +152,20 @@ final class AppModel {
             return
         }
         connecting.insert(address)
+        failedToConnect.remove(address)
         Task {
-            _ = await Bluetooth.setConnected(connect, address: address)
+            let succeeded = await Bluetooth.setConnected(connect, address: address)
             connecting.remove(address)
-            if selectOnArrival?.uid == device.uid, !connect { selectOnArrival = nil }
+            if !succeeded || !connect, selectOnArrival?.uid == device.uid { selectOnArrival = nil }
             scheduleRefresh()
             refreshBluetooth(after: .seconds(2))
+            if !succeeded {
+                log("could not \(connect ? "connect" : "disconnect") \(device.name)")
+                // Say so on the row for a few seconds.
+                failedToConnect.insert(address)
+                try? await Task.sleep(for: .seconds(5))
+                failedToConnect.remove(address)
+            }
         }
     }
 
@@ -193,10 +210,13 @@ final class AppModel {
     func setVolume(_ value: Float, _ role: Role) {
         guard let device = currentDevice(role) else { return }
         volume[role] = value
-        audio.setVolume(value, for: device.id)
+        // A device that refuses the level shows the one it kept.
+        if !audio.setVolume(value, for: device.id) { readVolume() }
     }
 
     func panelDidOpen() {
+        // Approving the login item in System Settings changes what the row should say.
+        if !isDryRun { launchAtLogin.refresh() }
         readVolume()
         refreshBluetooth()
         // Battery levels drift while the panel is open.
@@ -231,13 +251,19 @@ final class AppModel {
     }
 
     private func refresh() {
+        let bluetoothBefore = Set(connected.compactMap(\.bluetoothAddress))
         connected = audio.devices().map { device in
             var device = device
             device.productID = device.bluetoothAddress.flatMap { bluetooth[$0]?.productID }
             return device
         }
+        // A Bluetooth device that just connected: its battery level is from last time.
+        if !Set(connected.compactMap(\.bluetoothAddress)).isSubset(of: bluetoothBefore) {
+            refreshBluetooth(after: .seconds(3))
+        }
         readCurrent()
-        if store.isEmpty {
+        let isFirstLaunch = store.isEmpty
+        if isFirstLaunch {
             // First launch: the devices in use now go to the top of their
             // lists, so starting the app changes as little as possible.
             let inUse = connected.filter { current[$0.role] == $0.uid }
@@ -246,11 +272,24 @@ final class AppModel {
             store.register(connected)
         }
         rebuild()
-        run(.systemChanged)
-        if let wanted = selectOnArrival, let device = (devices[wanted.role] ?? []).first(where: { $0.id == wanted && $0.isConnected }) {
-            selectOnArrival = nil
-            run(.userSelected(device.role, device.uid))
+        if isFirstLaunch {
+            // Headphones rank above speakers, so a speaker in use is not at
+            // the top of the output list. Keeping it as a pick leaves it be.
+            for role in Role.allCases {
+                if let uid = current[role] { run(.userSelected(role, uid)) }
+            }
         }
+        // A device the user clicked while it was off is picked before the
+        // engine sees it arrive, so the engine does not first switch away.
+        if let wanted = selectOnArrival {
+            if Self.now > selectOnArrivalEnds {
+                selectOnArrival = nil
+            } else if let device = (devices[wanted.role] ?? []).first(where: { $0.id == wanted && $0.isConnected }) {
+                selectOnArrival = nil
+                run(.userSelected(device.role, device.uid))
+            }
+        }
+        run(.systemChanged)
     }
 
     private func readCurrent() {
@@ -259,9 +298,11 @@ final class AppModel {
 
     private func rebuild() {
         for role in Role.allCases { devices[role] = store.devices(for: role, connected: connected) }
-        audio.watchVolume(of: Role.allCases.compactMap { currentDevice($0)?.id })
-        readVolume()
     }
+
+    /// Seconds on a clock that keeps counting while the Mac sleeps, so a
+    /// 30-second window is not stretched by a night with the lid closed.
+    private static var now: TimeInterval { TimeInterval(clock_gettime_nsec_np(CLOCK_MONOTONIC)) / 1e9 }
 
     private func readVolume() {
         for role in Role.allCases { volume[role] = currentDevice(role).flatMap { audio.volume($0.id) } }
@@ -276,7 +317,7 @@ final class AppModel {
                 (role, Set(connected.filter { $0.role == role }.map(\.uid)))
             }),
             current: current,
-            now: ProcessInfo.processInfo.systemUptime,
+            now: Self.now,
             userPicking: event == .systemChanged && SystemSoundPicker.isInUse
         )
         for command in engine.handle(event, input) {
@@ -301,7 +342,7 @@ final class AppModel {
         pauseTimer?.cancel()
         pauseTimer = nil
         guard let end = engine.microphonePauseEndsAt else { return }
-        let wait = max(end - ProcessInfo.processInfo.systemUptime, 0)
+        let wait = max(end - Self.now, 0)
         pauseTimer = Task { [weak self] in
             try? await Task.sleep(for: .seconds(wait))
             guard !Task.isCancelled else { return }
@@ -318,8 +359,8 @@ final class AppModel {
 
     /// Reads the paired devices and their battery levels (about a second).
     func loadBluetooth() async {
-        let report = await Bluetooth.report()
-        guard report != bluetooth else { return }
+        // A failed read keeps the last good report.
+        guard let report = await Bluetooth.report(), report != bluetooth else { return }
         let products = { (devices: [String: BluetoothDevice]) in devices.compactMapValues(\.productID) }
         let isNewProduct = products(report) != products(bluetooth)
         bluetooth = report

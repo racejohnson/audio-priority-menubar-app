@@ -29,6 +29,8 @@ final class AudioSystem {
         for id in Self.array(Self.system, Self.address(kAudioHardwarePropertyDevices), of: AudioObjectID.self) {
             guard let uid = Self.string(id, Self.address(kAudioDevicePropertyDeviceUID)),
                   let name = Self.string(id, Self.address(kAudioObjectPropertyName)) else { continue }
+            // Helper devices a driver marks hidden are not for picking; Sound settings skips them too.
+            guard (Self.value(id, Self.address(kAudioDevicePropertyIsHidden), UInt32(0)) ?? 0) == 0 else { continue }
             let transport = Self.transport(Self.value(id, Self.address(kAudioDevicePropertyTransportType), UInt32(0)) ?? 0)
             for role in Role.allCases {
                 let scope = Self.scope(role)
@@ -53,10 +55,18 @@ final class AudioSystem {
 
     /// Nil when the device has no volume control of its own.
     func volume(_ id: DeviceID) -> Float? {
+        guard let (object, address) = volumeControl(id) else { return nil }
+        return Self.value(object, address, Float32(0))
+    }
+
+    /// The device's volume property, if it has one that can be set.
+    private func volumeControl(_ id: DeviceID) -> (AudioObjectID, AudioObjectPropertyAddress)? {
         guard let object = deviceIDs[id.key] else { return nil }
         var address = Self.address(Self.virtualMainVolume, Self.scope(id.role))
-        guard AudioObjectHasProperty(object, &address) else { return nil }
-        return Self.value(object, address, Float32(0))
+        var isSettable: DarwinBoolean = false
+        guard AudioObjectHasProperty(object, &address),
+              AudioObjectIsPropertySettable(object, &address, &isSettable) == noErr, isSettable.boolValue else { return nil }
+        return (object, address)
     }
 
     // MARK: Setting
@@ -70,11 +80,13 @@ final class AudioSystem {
         return AudioObjectSetPropertyData(Self.system, &address, 0, nil, UInt32(MemoryLayout<AudioObjectID>.size), &value) == noErr
     }
 
-    func setVolume(_ volume: Float, for id: DeviceID) {
-        guard !isDryRun, let object = deviceIDs[id.key] else { return }
-        var address = Self.address(Self.virtualMainVolume, Self.scope(id.role))
+    /// False when the device did not take the new volume.
+    func setVolume(_ volume: Float, for id: DeviceID) -> Bool {
+        guard !isDryRun else { return true }
+        guard let (object, control) = volumeControl(id) else { return false }
+        var address = control
         var value = Float32(min(max(volume, 0), 1))
-        AudioObjectSetPropertyData(object, &address, 0, nil, UInt32(MemoryLayout<Float32>.size), &value)
+        return AudioObjectSetPropertyData(object, &address, 0, nil, UInt32(MemoryLayout<Float32>.size), &value) == noErr
     }
 
     // MARK: Listening
@@ -90,14 +102,15 @@ final class AudioSystem {
 
     /// Watches the volume of these devices, replacing any earlier watch.
     func watchVolume(of ids: [DeviceID]) {
+        let wanted = ids.compactMap(volumeControl)
+        // Most calls ask for the devices already watched.
+        guard wanted.map({ [$0.0, $0.1.mScope] }) != volumeListeners.map({ [$0.0, $0.1.mScope] }) else { return }
         for (object, address, block) in volumeListeners {
             var address = address
             AudioObjectRemovePropertyListenerBlock(object, &address, .main, block)
         }
-        volumeListeners = ids.compactMap { id in
-            guard let object = deviceIDs[id.key] else { return nil }
-            var address = Self.address(Self.virtualMainVolume, Self.scope(id.role))
-            guard AudioObjectHasProperty(object, &address) else { return nil }
+        volumeListeners = wanted.map { object, address in
+            var address = address
             let block = Self.listener { [weak self] in self?.onVolumeChange?() }
             AudioObjectAddPropertyListenerBlock(object, &address, .main, block)
             return (object, address, block)

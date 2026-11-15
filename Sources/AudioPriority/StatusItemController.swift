@@ -16,7 +16,11 @@ final class StatusItemController: NSObject {
         var input: GlyphKey
         var isManual: Bool
         var label: String
+        /// The same, in words VoiceOver can read out.
+        var spoken: String
     }
+
+    private var shown: Face?
 
     init(model: AppModel, panel: PanelController) {
         self.model = model
@@ -45,7 +49,8 @@ final class StatusItemController: NSObject {
             output: output.map(model.glyph(for:)) ?? .symbol("speaker.slash.fill"),
             input: input.map(model.glyph(for:)) ?? .symbol("mic.slash.fill"),
             isManual: !model.auto,
-            label: "Out: \(output?.name ?? "none") · In: \(input?.name ?? "none")\(model.auto ? "" : " · Auto off")"
+            label: "Output: \(output?.name ?? "None") · Input: \(input?.name ?? "None")\(model.auto ? "" : " · Auto Switch off")",
+            spoken: "Output, \(output?.name ?? "none"). Input, \(input?.name ?? "none")\(model.auto ? "" : ". Auto Switch off")"
         )
     }
 
@@ -57,9 +62,10 @@ final class StatusItemController: NSObject {
     }
 
     private func show(_ face: Face) {
-        guard let button = item.button else { return }
+        guard let button = item.button, face != shown else { return }
+        shown = face
         button.image = Glyphs.capsule(output: face.output, input: face.input, isManual: face.isManual)
         button.toolTip = face.label
-        button.setAccessibilityLabel("Audio Priority. \(face.label)")
+        button.setAccessibilityLabel("Audio Priority. \(face.spoken)")
     }
 }
