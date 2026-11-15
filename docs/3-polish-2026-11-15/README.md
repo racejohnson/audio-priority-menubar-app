@@ -82,5 +82,7 @@ A hidden device leaves its list and is never picked automatically. It keeps its 
 | 2 | Drag handle | **No handle**: drag the row itself |
 | 3 | Hide control | **⋯ on hover**, plus the right-click menu |
 | 4 | Hidden devices | **Footer link** |
+| 5 | Lists in the panel | **Plain** |
+| 6 | AirPods glyph | **`airpods.gen4`**, for "Race’s AirPods 4"; the app picks the symbol from the connected model |
 
-Still open: lists in the panel, Plain or Inset (recommended: Plain).
+Nothing is open. Device names in the mock are the ones macOS reports on Race's Mac (15 Nov 2026): Race’s AirPods 4, Wireless Mic Rx, MacBook Pro Speakers, MacBook Pro Microphone, Race’s iPhone 17 Pro Microphone.

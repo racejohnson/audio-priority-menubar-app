@@ -6,7 +6,7 @@
 import AppKit
 
 let names = [
-  "laptopcomputer", "display", "mic", "mic.fill", "airpods.pro", "airpods", "airpod.right", "airpods.max",
+  "laptopcomputer", "display", "mic", "mic.fill", "airpods.pro", "airpods.gen4", "airpods", "airpod.right", "airpods.max",
   "headphones", "iphone", "hifispeaker", "hifispeaker.fill", "speaker.wave.2.fill", "speaker.wave.3.fill",
   "checkmark", "airpods.pro.chargingcase.wireless", "wifi", "battery.100percent", "switch.2", "sun.max.fill",
   "line.3.horizontal", "cable.connector", "tv", "homepod.fill",

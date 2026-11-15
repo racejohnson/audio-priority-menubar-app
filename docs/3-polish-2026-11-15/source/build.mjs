@@ -28,8 +28,8 @@ for (const small of [false, true]) {
 // Capsule (Soft), each side showing the device that owns it.
 export const COMBOS = [
   { id: "desk", label: "MacBook speakers + DJI mic", out: "laptopcomputer", in: "dji" },
-  { id: "airpods", label: "AirPods + AirPods mic", out: "airpods.pro", in: "airpods.pro" },
-  { id: "airpods-dji", label: "AirPods + DJI mic", out: "airpods.pro", in: "dji" },
+  { id: "airpods", label: "AirPods 4 + AirPods 4 mic", out: "airpods.gen4", in: "airpods.gen4" },
+  { id: "airpods-dji", label: "AirPods 4 + DJI mic", out: "airpods.gen4", in: "dji" },
   { id: "display", label: "Display speakers + MacBook mic", out: "display", in: "laptopcomputer" },
   { id: "macbook", label: "MacBook speakers + MacBook mic", out: "laptopcomputer", in: "laptopcomputer" },
   { id: "manual", label: "Auto off: MacBook + DJI", out: "laptopcomputer", in: "dji", manual: true },
