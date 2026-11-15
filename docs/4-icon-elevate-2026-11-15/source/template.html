@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio Priority Icons</title>
+<meta name="description" content="Round 4 for Race's Audio Priority menu-bar app: five elevated app-icon options, each at every size and in context, with today's Peaks icon as the baseline.">
+<style>
+:root{
+  --bg:#f3f4f7; --surface:#fff; --surface-2:#f7f8fa; --ink:#1d1d1f; --ink-2:#5f6068; --ink-3:#8a8b93; --line:rgba(0,0,0,.08);
+  --accent:#2f6fe4; --violet:#6a4fd8; --seg-bg:rgba(0,0,0,.06); --seg-on:#fff; --seg-shadow:0 1px 3px rgba(0,0,0,.14);
+  --stage-a:#ffffff; --stage-b:#e4e8ef; --stage-floor:rgba(0,0,0,.06);
+  --hero-a:#e9eefb; --hero-b:#f3effc; --hero-glow1:rgba(47,111,228,.22); --hero-glow2:rgba(106,79,216,.18);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro",system-ui,"Helvetica Neue",Arial,sans-serif;
+  --display:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro",system-ui,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08090c; --surface:#15161a; --surface-2:#1b1c21; --ink:#f5f5f7; --ink-2:#a3a4ab; --ink-3:#7c7d85; --line:rgba(255,255,255,.09);
+  --accent:#4b8dff; --violet:#9479f0; --seg-bg:rgba(255,255,255,.09); --seg-on:#3a3b41; --seg-shadow:0 1px 3px rgba(0,0,0,.5);
+  --stage-a:#24262d; --stage-b:#0d0e12; --stage-floor:rgba(0,0,0,.35);
+  --hero-a:#0b1022; --hero-b:#120b22; --hero-glow1:rgba(75,141,255,.28); --hero-glow2:rgba(148,121,240,.24); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#08090c; --surface:#15161a; --surface-2:#1b1c21; --ink:#f5f5f7; --ink-2:#a3a4ab; --ink-3:#7c7d85; --line:rgba(255,255,255,.09);
+  --accent:#4b8dff; --violet:#9479f0; --seg-bg:rgba(255,255,255,.09); --seg-on:#3a3b41; --seg-shadow:0 1px 3px rgba(0,0,0,.5);
+  --stage-a:#24262d; --stage-b:#0d0e12; --stage-floor:rgba(0,0,0,.35);
+  --hero-a:#0b1022; --hero-b:#120b22; --hero-glow1:rgba(75,141,255,.28); --hero-glow2:rgba(148,121,240,.24); color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font:inherit;color:inherit}
+img{display:block}
+.wrap{max-width:1360px;margin:0 auto;padding:0 32px}
+@media (max-width:640px){.wrap{padding:0 16px}}
+code{font-family:var(--mono);font-size:.86em}
+.seg{display:inline-flex;flex-wrap:wrap;background:var(--seg-bg);border-radius:9px;padding:2px;gap:2px}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;padding:30px 0 56px;background:
+  radial-gradient(60% 70% at 20% 0%,var(--hero-glow1),transparent 70%),
+  radial-gradient(55% 70% at 85% 10%,var(--hero-glow2),transparent 70%),
+  linear-gradient(180deg,var(--hero-a),var(--hero-b) 70%,var(--bg))}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.eyebrow{font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.eyebrow b{color:var(--ink)}
+.hero h1{font-family:var(--display);font-size:clamp(34px,5.4vw,64px);line-height:1.02;letter-spacing:-.035em;font-weight:700;margin:40px 0 14px;max-width:900px}
+.hero h1 .grad{background:linear-gradient(92deg,var(--accent),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{font-size:18px;line-height:1.45;color:var(--ink-2);max-width:720px;margin:0}
+.lineup{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px;margin:52px 0 0;align-items:end}
+@media (max-width:820px){.lineup{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:460px){.lineup{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lu{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:inherit;border-radius:20px;padding:10px 4px 14px;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.lu:hover{transform:translateY(-6px)}
+.lu:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lu img{width:min(184px,100%);height:auto;aspect-ratio:1}
+.lu .n{margin-top:10px;font-weight:650;font-size:15px;display:flex;gap:7px;align-items:center}
+.lu .k{font-size:12px;color:var(--ink-3);margin-top:1px}
+.num{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-weight:500}
+.rec{display:inline-block;font-size:10.5px;font-weight:650;color:#fff;background:linear-gradient(92deg,#2f6fe4,#6a4fd8);border-radius:980px;padding:2px 8px;letter-spacing:.02em}
+.today-chip{display:inline-flex;align-items:center;gap:10px;margin-top:26px;font-size:13px;color:var(--ink-2);text-decoration:none;padding:6px 12px 6px 6px;border-radius:12px;background:color-mix(in srgb,var(--surface) 60%,transparent);box-shadow:0 0 0 .5px var(--line)}
+.today-chip img{width:32px;height:32px}
+
+/* ---------- toc ---------- */
+nav.toc{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);border-bottom:.5px solid var(--line)}
+nav.toc .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:10px;padding-bottom:10px;scrollbar-width:none}
+nav.toc a{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--ink);text-decoration:none;padding:4px 12px 4px 5px;border-radius:980px;background:var(--surface);box-shadow:0 0 0 .5px var(--line)}
+nav.toc a.t{padding-left:12px}
+nav.toc a img{width:20px;height:20px}
+nav.toc a:hover{box-shadow:0 0 0 1px var(--accent)}
+
+/* ---------- option section ---------- */
+section{padding:72px 0 8px;scroll-margin-top:40px}
+.sh{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.sh .num{font-size:14px}
+h2{font-family:var(--display);font-size:clamp(30px,3.6vw,44px);letter-spacing:-.03em;line-height:1.05;margin:0}
+.tag{font-size:12.5px;font-weight:600;color:var(--ink-2);padding:3px 10px;border-radius:980px;background:var(--seg-bg)}
+.idea{font-size:18px;line-height:1.45;color:var(--ink-2);margin:12px 0 26px;max-width:780px}
+.og{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:stretch}
+@media (max-width:980px){.og{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border-radius:22px;box-shadow:0 0 0 .5px var(--line);padding:20px 22px}
+.card h4{margin:0 0 12px;font-size:12px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.card h4 + .small{margin-top:-8px}
+.small{font-size:12.5px;color:var(--ink-2)}
+.tiny{font-size:11px;color:var(--ink-3)}
+
+/* hero stage */
+.stage{position:relative;border-radius:22px;overflow:hidden;min-height:440px;display:flex;flex-direction:column;box-shadow:0 0 0 .5px var(--line);isolation:isolate}
+.stage .bgs{position:absolute;inset:0;z-index:-1;transition:opacity .35s}
+.stage .bg-spot{background:radial-gradient(70% 60% at 50% 38%,var(--stage-a),var(--stage-b))}
+.stage .bg-wall{opacity:0;background:radial-gradient(90% 70% at 15% 10%,#7fb4ff 0%,transparent 60%),radial-gradient(80% 70% at 90% 20%,#d6a8f5 0%,transparent 60%),radial-gradient(100% 80% at 60% 100%,#f7c59f 0%,transparent 60%),#c9d6ee}
+.stage.wall .bg-wall{opacity:1}
+:root[data-theme="dark"] .stage .bg-wall{background:radial-gradient(90% 70% at 15% 10%,#173a7a 0%,transparent 60%),radial-gradient(80% 70% at 90% 20%,#4a2068 0%,transparent 60%),radial-gradient(100% 80% at 60% 100%,#5a2a1a 0%,transparent 60%),#0c0f1a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .stage .bg-wall{background:radial-gradient(90% 70% at 15% 10%,#173a7a 0%,transparent 60%),radial-gradient(80% 70% at 90% 20%,#4a2068 0%,transparent 60%),radial-gradient(100% 80% at 60% 100%,#5a2a1a 0%,transparent 60%),#0c0f1a}}
+.stage .ctl{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 14px 0;flex-wrap:wrap}
+.stage .ctl .seg{background:color-mix(in srgb,var(--surface) 55%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.stage .cap{font-size:11.5px;color:var(--ink-3);font-family:var(--mono)}
+.stage.wall .cap{color:rgba(0,0,0,.5)}
+.stage .well{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 16px 24px}
+.hb{position:relative;width:min(512px,100%);aspect-ratio:1}
+.hb > *{position:absolute;inset:0;width:100%;height:100%;transition:opacity .3s,transform .3s}
+.hb .masked{inset:9.765625%;width:auto;height:auto;filter:drop-shadow(0 10px 14px rgba(0,0,0,.28))}
+.sys{display:inline-block;flex:none;position:relative;filter:drop-shadow(0 calc(var(--d,1px)) calc(var(--d,1px)*1.5) rgba(0,0,0,.22))}
+.sys img{position:absolute;inset:9.765625%;width:80.46875%;height:80.46875%;-webkit-mask:var(--shape) center/100% 100% no-repeat;mask:var(--shape) center/100% 100% no-repeat}
+.hb .masked img{width:100%;height:100%;-webkit-mask:var(--shape) center/100% 100% no-repeat;mask:var(--shape) center/100% 100% no-repeat}
+.hb [data-v]{opacity:0;pointer-events:none}
+.hb[data-show="master"] [data-v="master"],.hb[data-show="shape"] [data-v="shape"]{opacity:1}
+
+/* ladder */
+.ladders{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,600px),1fr));gap:12px;margin-top:20px}
+.ladder{display:flex;align-items:flex-end;justify-content:center;gap:18px;padding:24px 20px 14px;border-radius:16px;overflow-x:auto;scrollbar-width:thin}
+.ladder.l{background:linear-gradient(#fbfbfd,#eceef2);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.07)}
+.ladder.d{background:linear-gradient(#26272c,#141518);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.08)}
+.rung{display:flex;flex-direction:column;align-items:center;gap:8px;flex:none}
+.rung span{font-size:10.5px;font-family:var(--mono)}
+.ladder.l .rung span{color:rgba(0,0,0,.45)}.ladder.d .rung span{color:rgba(255,255,255,.45)}
+.pix{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end}
+.pix figure{margin:0}
+.pix img{image-rendering:pixelated;border-radius:6px;background:repeating-conic-gradient(rgba(127,127,127,.12) 0 25%,transparent 0 50%) 0 0/16px 16px}
+.pix figcaption{font-size:11px;color:var(--ink-3);margin-top:6px;font-family:var(--mono)}
+.right{display:flex;flex-direction:column;gap:16px}
+.docks{flex:1;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.docks .scene{min-height:150px;padding-top:30px}
+.verdict{font-size:14px;line-height:1.5;color:var(--ink-2);margin:0}
+.verdict b{color:var(--ink)}
+
+/* context: dock + finder */
+.ctx{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px}
+@media (max-width:980px){.ctx{grid-template-columns:minmax(0,1fr)}}
+.scene{position:relative;border-radius:18px;overflow:hidden;padding:26px 16px 14px;display:flex;flex-direction:column;align-items:center;gap:18px;min-height:230px;box-shadow:0 0 0 .5px var(--line)}
+.scene.l{background:radial-gradient(80% 90% at 15% 0%,#9cc2ff,transparent 60%),radial-gradient(70% 90% at 100% 20%,#e3b8f7,transparent 60%),radial-gradient(90% 90% at 50% 110%,#ffd3ad,transparent 60%),#cfdaf0}
+.scene.d{background:radial-gradient(80% 90% at 15% 0%,#173a7a,transparent 60%),radial-gradient(70% 90% at 100% 20%,#46205f,transparent 60%),radial-gradient(90% 90% at 50% 110%,#4a2214,transparent 60%),#0b0e18}
+.scene .lbl{position:absolute;top:10px;left:14px;font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.scene.l .lbl{color:rgba(0,0,0,.45)}.scene.d .lbl{color:rgba(255,255,255,.5)}
+.dock{display:flex;align-items:flex-end;gap:6px;padding:6px 8px;border-radius:24px;max-width:100%;overflow:hidden}
+.scene.l .dock{background:rgba(255,255,255,.34);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.7),0 0 0 .5px rgba(0,0,0,.12),0 10px 30px rgba(0,0,0,.12);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6)}
+.scene.d .dock{background:rgba(30,30,36,.42);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.16),0 0 0 .5px rgba(0,0,0,.6),0 10px 30px rgba(0,0,0,.4);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6)}
+.dk{position:relative;flex:none;width:58px;height:58px}
+.dk > img{width:100%;height:100%}
+.dk.ours::after{content:"";position:absolute;left:50%;bottom:-5px;width:4px;height:4px;margin-left:-2px;border-radius:50%}
+.scene.l .dk.ours::after{background:rgba(0,0,0,.55)}.scene.d .dk.ours::after{background:rgba(255,255,255,.75)}
+.dock .sep{width:1px;align-self:stretch;margin:6px 3px}
+.scene.l .dock .sep{background:rgba(0,0,0,.14)}.scene.d .dock .sep{background:rgba(255,255,255,.18)}
+.dtip{font-size:12px;padding:3px 9px;border-radius:7px;margin-bottom:-10px}
+.scene.l .dtip{background:rgba(246,246,248,.85);color:#1d1d1f;box-shadow:0 0 0 .5px rgba(0,0,0,.15)}
+.scene.d .dtip{background:rgba(40,40,46,.85);color:#f2f2f7;box-shadow:0 0 0 .5px rgba(255,255,255,.15)}
+.win{width:min(420px,100%);border-radius:12px;overflow:hidden;font-size:12.5px}
+.scene.l .win{background:#fff;color:#1d1d1f;box-shadow:0 0 0 .5px rgba(0,0,0,.15),0 12px 30px rgba(0,0,0,.18)}
+.scene.d .win{background:#1e1e22;color:#f2f2f7;box-shadow:0 0 0 .5px rgba(255,255,255,.12),0 12px 30px rgba(0,0,0,.5)}
+.win .tb{height:30px;display:flex;align-items:center;gap:6px;padding:0 10px;font-weight:600;font-size:12px}
+.win .tb i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.win .tb i:nth-child(1){background:#ff5f57}.win .tb i:nth-child(2){background:#febc2e}.win .tb i:nth-child(3){background:#28c840}
+.win .tb span{margin-left:auto;margin-right:auto;transform:translateX(-24px)}
+.scene.l .win .tb{background:#f4f4f6;border-bottom:.5px solid rgba(0,0,0,.1)}.scene.d .win .tb{background:#2a2a2f;border-bottom:.5px solid rgba(0,0,0,.6)}
+.row{display:flex;align-items:center;gap:7px;height:24px;padding:0 10px;margin:0 6px;border-radius:5px;white-space:nowrap}
+.row img{width:16px;height:16px;flex:none}
+.row .kind{margin-left:auto;font-size:11.5px;opacity:.5}
+.row.sel{background:#0a64d8;color:#fff}.row.sel .kind{opacity:.8}
+.scene.d .row.sel{background:#2a64c9}
+.win .rows{padding:4px 0 6px}
+.scene.l .row:nth-child(even):not(.sel){background:#f5f5f7}.scene.d .row:nth-child(even):not(.sel){background:rgba(255,255,255,.04)}
+
+/* ---------- side by side ---------- */
+.matrix{overflow-x:auto;border-radius:22px;box-shadow:0 0 0 .5px var(--line);transition:background .3s}
+.matrix.l{background:linear-gradient(#fdfdfe,#eceef2)}
+.matrix.d{background:linear-gradient(#232429,#111215)}
+.matrix.w{background:radial-gradient(80% 90% at 15% 0%,#9cc2ff,transparent 60%),radial-gradient(70% 90% at 100% 20%,#e3b8f7,transparent 60%),radial-gradient(90% 90% at 50% 110%,#ffd3ad,transparent 60%),#cfdaf0}
+.mt{display:grid;grid-template-columns:72px repeat(6,minmax(132px,1fr));min-width:900px}
+.mt > div{display:flex;align-items:center;justify-content:center;padding:14px 6px}
+.mt .h{flex-direction:column;gap:2px;padding-top:20px;font-weight:650;font-size:13px}
+.mt .h small{font-weight:500;font-size:11px;opacity:.55}
+.mt .sz{font-family:var(--mono);font-size:11px;justify-content:flex-end;padding-right:14px;opacity:.55}
+.matrix.l .mt,.matrix.w .mt{color:#1d1d1f}.matrix.d .mt{color:#f2f2f7}
+.mt .base{opacity:.62}
+.mt .pz img{image-rendering:pixelated;width:96px;height:96px}
+.alldock{display:flex;justify-content:center;margin-top:16px}
+.alldock .scene{width:100%;min-height:0;padding:34px 16px 20px}
+
+/* ---------- today + decision ---------- */
+.decide{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px}
+@media (max-width:900px){.decide{grid-template-columns:minmax(0,1fr)}}
+.rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rank li{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:14px;background:var(--surface-2)}
+.rank li img{width:40px;height:40px}
+.rank li b{font-size:14px}
+.rank li .num{width:18px}
+.ship ol{margin:0;padding-left:20px;color:var(--ink-2);font-size:14px}
+.ship li{margin:4px 0}
+footer{padding:56px 0 72px;color:var(--ink-3);font-size:12.5px}
+.big-rec{font-size:20px;line-height:1.45;letter-spacing:-.01em;margin:0 0 14px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="eyebrow"><b>Audio Priority</b> · Round 4 · App icon elevate · 15 Nov 2026</div>
+      <div class="seg" role="group" aria-label="Appearance" id="theme">
+        <button type="button" data-t="auto" aria-pressed="true">Auto</button><button type="button" data-t="light" aria-pressed="false">Light</button><button type="button" data-t="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+    <h1>Peaks, <span class="grad">simpler and bolder</span>.</h1>
+    <p class="lede">Five takes on today’s meter, held to the bar of Claude, Journal, Spotify, Time Machine and Tailscale: one big glyph, one or two colours, no fuss. Each is a shippable set (1024 master, 16/32 px cut, full-bleed art for macOS 26’s shape) that drops into <code>Icon/build-icon.sh</code> unchanged.</p>
+    <div class="lineup" id="lineup"></div>
+    <a class="today-chip" href="#today" id="todayChip"></a>
+  </div>
+</header>
+<nav class="toc" aria-label="Sections"><div class="wrap" id="toc"></div></nav>
+<main class="wrap" id="main"></main>
+<footer class="wrap">Every icon on this page is the SVG in <code>svg/</code>, inlined; the pixel views are rendered with <code>rsvg-convert</code>, the same renderer <code>build-icon.sh</code> uses. Rebuild with <code>node docs/4-icon-elevate-2026-11-15/source/build.mjs</code>.</footer>
+<script>
+/*__DATA__*/
+const $ = (s, el = document) => el.querySelector(s);
+const url = (svg) => URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+for (const o of OPTIONS) { o.uM = url(o.master); o.uS = url(o.small); o.uB = url(o.bleed); }
+const SHAPE = `url("data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='100 100 824 824'><path d='${TILE}'/></svg>`)}")`;
+document.documentElement.style.setProperty("--shape", SHAPE);
+const base = OPTIONS[0], opts = OPTIONS.slice(1);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const pad = (i) => String(i + 1).padStart(2, "0");
+const isRec = (o) => o.slug === NOTES.recommended;
+// What macOS draws at a given point size on a Retina display (build-icon.sh: 16 pt uses the small cut, 32 pt and up the master).
+const at = (o, pt) => pt <= 16 ? o.uS : o.uM;
+const ico = (src, pt, cls = "") => `<img src="${src}" width="${pt}" height="${pt}" alt="" class="${cls}">`;
+// As macOS 26 draws the installed app: the full-bleed art under the system shape, inset like the master's tile.
+const sys = (o, pt, alt = "") => `<span class="sys" style="width:${pt}px;height:${pt}px"><img src="${o.uB}" alt="${esc(alt)}"></span>`;
+
+// Theme
+const tb = document.querySelectorAll("#theme button");
+function setTheme(t) {
+  if (t === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", t);
+  tb.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
+  try { localStorage.setItem("ap-r4-theme", t); } catch (e) {}
+}
+tb.forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.t)));
+try { const t = localStorage.getItem("ap-r4-theme"); if (t) setTheme(t); } catch (e) {}
+
+// Hero lineup + toc
+$("#lineup").innerHTML = opts.map((o, i) => `<a class="lu" href="#${o.slug}"><img src="${o.uM}" alt="${esc(o.name)}"><div class="n"><span class="num">${pad(i)}</span>${esc(o.name)}${isRec(o) ? '<span class="rec">Pick</span>' : ""}</div><div class="k">${esc(o.tag)}</div></a>`).join("");
+$("#todayChip").innerHTML = `${ico(base.uM, 32)}<span>Today: <b>Peaks</b>, the baseline</span>`;
+$("#toc").innerHTML = opts.map((o, i) => `<a href="#${o.slug}">${ico(o.uM, 20)}${esc(o.name)}</a>`).join("")
+  + `<a class="t" href="#side">Side by side</a><a class="t" href="#today">Today</a><a class="t" href="#decide">Decision</a>`;
+
+// Context scenes
+function dockScene(o, mode, label) {
+  // Ours sits in the middle so the Dock's name tooltip lines up over it.
+  const fam = FAMILY.map(([n, src]) => `<div class="dk"><img src="${src}" alt="${esc(n)}"></div>`);
+  fam.splice(2, 0, `<div class="dk ours">${sys(o, 58, "Audio Priority")}</div>`);
+  return `<div class="scene ${mode}"><span class="lbl">${label}</span><div style="flex:1"></div><div class="dtip">Audio Priority</div><div class="dock">${fam.join("")}</div></div>`;
+}
+function finderScene(o, mode, label) {
+  const rows = [["Audio Priority", null, true], ["DayNight", FAMILY[0][1]], ["MediaKeys", FAMILY[1][1]], ["Polaris", FAMILY[3][1]], ["Screenshot Pathname", FAMILY[2][1]]];
+  return `<div class="scene ${mode}"><span class="lbl">${label}</span><div class="win"><div class="tb"><i></i><i></i><i></i><span>Applications</span></div><div class="rows">${rows.map(([n, src, sel]) => `<div class="row${sel ? " sel" : ""}">${src ? `<img src="${src}" alt="">` : sys(o, 16)}${esc(n)}<span class="kind">Application</span></div>`).join("")}</div></div></div>`;
+}
+function ladder(o, mode) {
+  return `<div class="ladder ${mode}">${[256, 128, 64, 32, 16].map((pt) => `<div class="rung">${sys(o, pt)}<span>${pt}</span></div>`).join("")}</div>`;
+}
+
+// Option sections
+const main = $("#main");
+main.innerHTML = opts.map((o, i) => `
+<section id="${o.slug}">
+  <div class="sh"><span class="num">${pad(i)} / 05</span><h2>${esc(o.name)}</h2><span class="tag">${esc(o.tag)}</span>${isRec(o) ? '<span class="rec">Recommended</span>' : ""}</div>
+  <p class="idea">${esc(o.idea)}</p>
+  <div class="og">
+    <div class="stage" data-stage style="--d:4px">
+      <div class="bgs bg-spot"></div><div class="bgs bg-wall"></div>
+      <div class="ctl"><div class="seg" role="group" aria-label="View">
+        <button type="button" data-view="master" aria-pressed="true">Master</button><button type="button" data-view="shape" aria-pressed="false">macOS shape</button><button type="button" data-view="wall" aria-pressed="false">On wallpaper</button>
+      </div><span class="cap" data-cap>512 pt · AppIcon.svg</span></div>
+      <div class="well"><div class="hb" data-show="master">
+        <img data-v="master" src="${o.uM}" alt="${esc(o.name)} at 512 points">
+        <div class="masked" data-v="shape"><img src="${o.uB}" alt="${esc(o.name)}, full-bleed art under the macOS shape"></div>
+      </div></div>
+    </div>
+    <div class="right">
+      <div class="card"><h4>Pixel for pixel</h4><p class="small">macOS 26 draws the full-bleed art at every size, 16 px included; the small cut only feeds the <code>.icns</code> fallback.</p>
+        <div class="pix">
+          <figure><img src="${o.b16}" width="128" height="128" alt=""><figcaption>macOS 26 · 16 px ×8</figcaption></figure>
+          <figure><img src="${o.b32}" width="128" height="128" alt=""><figcaption>macOS 26 · 32 px ×4</figcaption></figure>
+          <figure><img src="${o.s16}" width="128" height="128" alt=""><figcaption>small cut · 16 px ×8</figcaption></figure>
+        </div></div>
+      ${o.verdict ? `<div class="card"><h4>Against the other four</h4><p class="verdict">${esc(o.verdict)}</p></div>` : ""}
+      <div class="docks">${dockScene(o, "l", "Dock · light")}${dockScene(o, "d", "Dock · dark")}</div>
+    </div>
+  </div>
+  <div class="ladders">${ladder(o, "l")}${ladder(o, "d")}</div>
+  <p class="tiny" style="margin:8px 2px 0">Size ladder at true point size, as macOS 26 draws it: 256 · 128 · 64 · 32 · 16.</p>
+  <div class="ctx">${finderScene(o, "l", "Finder · light")}${finderScene(o, "d", "Finder · dark")}</div>
+</section>`).join("");
+
+// Side by side
+const cols = [base, ...opts];
+function matrix() {
+  const head = `<div></div>` + cols.map((o, i) => `<div class="h${i ? "" : " base"}">${esc(o.name)}<small>${i ? esc(o.tag) : "baseline"}</small></div>`).join("");
+  const rows = [128, 64, 32, 16].map((pt) => `<div class="sz">${pt} pt</div>` + cols.map((o, i) => `<div class="${i ? "" : "base"}">${sys(o, pt)}</div>`).join("")).join("");
+  const pz = `<div class="sz">16 px ×6</div>` + cols.map((o, i) => `<div class="pz${i ? "" : " base"}"><img src="${o.b16}" alt=""></div>`).join("");
+  return `<div class="mt">${head}${rows}${pz}</div>`;
+}
+main.insertAdjacentHTML("beforeend", `
+<section id="side">
+  <div class="sh"><span class="num">Compare</span><h2>Side by side</h2></div>
+  <p class="idea">All five at the sizes that matter, with Peaks for reference. Every size is the full-bleed art under the system shape, as macOS 26 draws it; the bottom row is its 16 px raster.</p>
+  <div class="seg" role="group" aria-label="Ground" id="ground" style="margin-bottom:14px"><button type="button" data-g="l" aria-pressed="true">Light</button><button type="button" data-g="d" aria-pressed="false">Dark</button><button type="button" data-g="w" aria-pressed="false">Wallpaper</button></div>
+  <div class="matrix l" id="matrix">${matrix()}</div>
+  <div class="alldock"><div class="scene l" id="alldock"><span class="lbl">All five in one Dock</span><div class="dock">${opts.map((o) => `<div class="dk ours">${sys(o, 58, o.name)}</div>`).join("")}<div class="sep"></div>${FAMILY.map(([n, s]) => `<div class="dk"><img src="${s}" alt="${esc(n)}"></div>`).join("")}</div></div></div>
+</section>
+<section id="today">
+  <div class="sh"><span class="num">Baseline</span><h2>Peaks, today</h2><span class="tag">Shipping</span></div>
+  <p class="idea">${esc(base.idea)} Clean and on-family, but the glyph is small in its tile and six thin rows turn to mush at 16 px. Everything above is measured against it.</p>
+  <div class="ladders" style="margin:0">${ladder(base, "l")}${ladder(base, "d")}</div>
+</section>
+<section id="decide">
+  <div class="sh"><span class="num">Decide</span><h2>The pick</h2></div>
+  <div class="decide" style="margin-top:22px">
+    <div class="card"><h4>Recommendation</h4><p class="big-rec">${esc(NOTES.recommendation)}</p>
+      <ol class="rank">${NOTES.ranking.map((s, i) => { const o = opts.find((x) => x.slug === s); return o ? `<li><span class="num">${i + 1}</span>${ico(o.uM, 40)}<div><b>${esc(o.name)}</b><div class="tiny">${esc(o.tag)}</div></div>${isRec(o) ? '<span class="rec" style="margin-left:auto">Pick</span>' : ""}</li>` : ""; }).join("")}</ol></div>
+    <div class="card ship"><h4>Shipping the one you pick</h4><ol>
+      <li>Copy <code>svg/&lt;slug&gt;/&lt;slug&gt;.svg</code>, <code>-small.svg</code> and <code>-bleed.svg</code> over <code>Icon/AppIcon.svg</code>, <code>AppIcon-small.svg</code> and <code>AppIcon-bleed.svg</code>.</li>
+      <li>Run <code>make icon</code>, then <code>make install</code>.</li>
+      <li>Check it in the Dock, Finder and Spotlight, light and dark. The installed icon comes from <code>Assets.car</code>, built from the bleed file.</li>
+    </ol><p class="small" style="margin-top:14px">Parts can travel: a colour, a segment count or a tile from one option can move to another before it ships.</p></div>
+  </div>
+</section>`);
+
+// Stage view toggles
+document.querySelectorAll("[data-stage]").forEach((st) => {
+  const hb = $(".hb", st), cap = $("[data-cap]", st);
+  st.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => {
+    const v = b.dataset.view;
+    st.querySelectorAll("[data-view]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    hb.dataset.show = v === "shape" ? "shape" : "master";
+    st.classList.toggle("wall", v === "wall");
+    cap.textContent = v === "shape" ? "AppIcon-bleed.svg under the system shape" : "512 pt · AppIcon.svg";
+  }));
+});
+// The sections are built by script, so jump to a #hash once they exist.
+if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
+// Ground toggle
+document.querySelectorAll("#ground button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("#ground button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  $("#matrix").className = "matrix " + b.dataset.g;
+  $("#alldock").className = "scene " + (b.dataset.g === "d" ? "d" : "l");
+}));
+</script>
+</body>
+</html>

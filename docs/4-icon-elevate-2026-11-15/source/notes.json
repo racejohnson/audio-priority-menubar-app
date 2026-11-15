@@ -1,0 +1,33 @@
+{
+  "order": ["bold", "night", "blend", "daylight", "duo"],
+  "recommended": "bold",
+  "ranking": ["bold", "night", "blend", "daylight", "duo"],
+  "recommendation": "Bold: it is today’s Peaks with the fuss taken out and the glyph made big, so it keeps the icon you chose and finally reads at 16 px. If you want output and input to show as blue and violet, Night is the strongest of the colour takes.",
+  "options": {
+    "bold": {
+      "tag": "Today’s, distilled",
+      "idea": "Today’s Peaks with nothing extra and everything bigger: four chunky flat segments a side instead of six thin glassy ones, unlit segments simply dimmed, filling 60% of the tile.",
+      "verdict": "The closest to today’s icon, done better: calm and confident, and it sits well next to Tailscale. The cost: with no second colour it can read a little like a list icon, and output and input differ only by how full they are."
+    },
+    "night": {
+      "tag": "Colour on black",
+      "idea": "Peaks on a black tile: bright blue output, full, beside violet input at half, flat, with unlit segments as dim tints, as Tailscale shows its idle dots.",
+      "verdict": "The best at 16 px and the nearest to the Spotify and Tailscale bar: high contrast, and the full-versus-half shape is obvious at every size. The cost: it gives up Peaks’ blue tile, so it feels like a cousin of today’s icon rather than the same one."
+    },
+    "blend": {
+      "tag": "Colour on the tile",
+      "idea": "The colour moves to the tile: one sweep from output blue to input violet, with a plain white four-segment meter on top, as Claude puts one white glyph on one vivid tile.",
+      "verdict": "The friendliest and most current-looking: one white glyph, one colour sweep, nothing else. The cost: the blue-to-violet tile is a new note in your family of deep tiles, and pill ends make it read a touch more like a list."
+    },
+    "daylight": {
+      "tag": "Colour on white",
+      "idea": "Today’s meter redrawn large and flat on a white tile: four fat pills a side, blue output full beside violet input lit three of four, in the spirit of Time Machine.",
+      "verdict": "The one truly different take: crisp and friendly. The costs: it leaves Peaks’ dark blue look furthest behind, it glares as a white square in a dark Dock, and it is the softest of the five at 16 px."
+    },
+    "duo": {
+      "tag": "Three, in colour",
+      "idea": "Peaks on today’s deep navy, cut to three wide segments a side in output blue (full) and input violet (two of three), the fewest and biggest segments of the five.",
+      "verdict": "Keeps today’s navy and adds the blue/violet story with the biggest shapes. The cost: blue on navy is lower in contrast than Night, so it is murkier at 16 px; it is the gentler sibling of Night."
+    }
+  }
+}
