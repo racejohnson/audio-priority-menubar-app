@@ -59,6 +59,9 @@ final class PanelController {
         panel.alphaValue = 0
         panel.orderFrontRegardless()
         panel.makeKey()
+        // Nothing starts out focused: otherwise the first row, or the one
+        // clicked last time, opens looking hovered. Tab still moves in.
+        panel.makeFirstResponder(nil)
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.12
             panel.animator().alphaValue = 1

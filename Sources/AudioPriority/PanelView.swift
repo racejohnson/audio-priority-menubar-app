@@ -408,8 +408,9 @@ private struct DeviceRow: View {
         let isDimmed = isHidden || !device.isConnected || model.isMicOff(device)
         // Dimmed less on the filled row, where white at 42% would be hard to read.
         let dim: Double = isDimmed ? (isCurrent ? 0.7 : 0.42) : 1
-        // ⋯ shows while the pointer is on the row, or the keyboard is.
-        let showsActions = !isHidden && (isHovering || isFocused || menuIsFocused)
+        // ⋯ shows while the pointer is on the row, or the keyboard is on ⋯ itself.
+        // Not for a focused row: the first row is focused whenever the panel opens.
+        let showsActions = !isHidden && (isHovering || menuIsFocused)
         // Whether choosing the row would do anything.
         let canUse = isCurrent || (!isHidden && !model.isMicOff(device) && (device.isConnected || model.canConnect(device)))
         HStack(spacing: 8) {
