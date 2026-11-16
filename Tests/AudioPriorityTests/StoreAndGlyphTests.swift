@@ -95,6 +95,32 @@ private func device(_ role: Role, _ uid: String, _ name: String, _ category: Dev
         #expect(glyph("WH-1000XM5", .output, .headphones, .bluetooth) == .symbol("headphones"))
     }
 
+    @Test func aWirelessMicrophonesSecondLine() {
+        let dji = AudioDevice(id: DeviceID(.input, "dji"), name: "Wireless Mic Rx", transport: .usb, category: .microphones)
+        #expect(DeviceGlyph.detail(for: dji) == "DJI Mic Mini · USB")
+        #expect(DeviceGlyph.detail(for: dji, transmitter: .init(isLinked: true)) == "DJI Mic Mini · USB")
+        #expect(DeviceGlyph.detail(for: dji, transmitter: .init(isLinked: true, gauge: 3)) == "DJI Mic Mini")
+        #expect(DeviceGlyph.detail(for: dji, transmitter: .init(isLinked: true, isCharging: true, gauge: 6)) == "DJI Mic Mini · Charging")
+        #expect(DeviceGlyph.detail(for: dji, transmitter: .init(isLinked: true, gauge: 6)) == "DJI Mic Mini · Low battery")
+        #expect(DeviceGlyph.detail(for: dji, transmitter: .init(isLinked: true, gauge: 5)) == "DJI Mic Mini")
+        #expect(DeviceGlyph.detail(for: dji, transmitter: .init(isLinked: false)) == "DJI Mic Mini · Mic off")
+        // Any other device is unaffected.
+        let scarlett = AudioDevice(id: DeviceID(.input, "x"), name: "Scarlett 2i2", transport: .usb, category: .microphones)
+        #expect(DeviceGlyph.detail(for: scarlett, transmitter: .init(isLinked: false)) == "USB")
+    }
+
+    @Test func glyphsFollowTheHostAndTheConnection() {
+        func glyph(_ name: String, _ role: Role, _ category: DeviceCategory, _ transport: Transport, laptop: Bool = true) -> GlyphKey {
+            DeviceGlyph.glyph(for: AudioDevice(id: DeviceID(role, "x"), name: name, transport: transport, category: category), hostIsLaptop: laptop)
+        }
+        #expect(glyph("Mac mini Speakers", .output, .speakers, .builtIn, laptop: false) == .symbol("desktopcomputer"))
+        #expect(glyph("LG HDR 4K", .output, .speakers, .displayPort) == .symbol("display"))
+        #expect(glyph("LG TV", .output, .speakers, .hdmi) == .symbol("tv"))
+        // A Thunderbolt audio interface is not a display.
+        #expect(glyph("Apollo Twin X", .output, .speakers, .thunderbolt) == .symbol("hifispeaker.fill"))
+        #expect(glyph("BlackHole 2ch", .output, .speakers, .virtual) == .symbol("speaker.wave.2.fill"))
+    }
+
     @Test func headphoneNames() {
         #expect(HeadphoneDetection.isHeadphone("Race’s AirPods 4"))
         #expect(HeadphoneDetection.isHeadphone("External Headphones"))

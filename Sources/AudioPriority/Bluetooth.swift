@@ -32,6 +32,10 @@ enum Bluetooth {
                 process.standardError = FileHandle.nullDevice
                 do {
                     try process.run()
+                    // It normally takes a second. If it hangs, end it, so this is not left waiting for good.
+                    DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 10) {
+                        if process.isRunning { process.terminate() }
+                    }
                     let data = pipe.fileHandleForReading.readDataToEndOfFile()
                     process.waitUntilExit()
                     continuation.resume(returning: process.terminationStatus == 0 ? BluetoothReport.parse(data) : nil)
@@ -45,7 +49,8 @@ enum Bluetooth {
 
 /// Whether the user has Control Center or Sound settings open, in which case a
 /// change of default device is their own pick and not macOS moving it.
-/// From Audio Priority Bar by Camille Guillory and Tobias Lütke (GPL-3.0).
+/// From Audio Priority Bar by Camille Guillory, which continues
+/// AudioPriorityBar by Tobias Lütke (both GPL-3.0).
 @MainActor
 enum SystemSoundPicker {
     static var isInUse: Bool {

@@ -19,7 +19,7 @@ Put in your AirPods and macOS moves your microphone to them too, so the call you
 Audio Priority fixes the order once. It sits in your menu bar with two lists, one for where sound comes out and one for your microphone. Rank your devices, and it switches to the first one that's connected and takes the microphone back whenever macOS or an app moves it.
 
 <p align="center">
-  <img src="docs/panel.png" width="840" alt="The Audio Priority panel open below its menu-bar item, three times: AirPods in use with a DJI microphone held, the AirPods away with the MacBook speakers in use, and Auto Switch turned off in dark mode">
+  <img src="docs/panel.png" width="840" alt="The Audio Priority panel open below its menu-bar item, three times: AirPods in use with a DJI microphone held, the AirPods away with the MacBook speakers in use, and Auto Switch turned off with one device hidden, in dark mode">
 </p>
 
 - **Your order.** Drag devices into the order you want. Headphones always rank above speakers.
@@ -58,7 +58,7 @@ Audio Priority has no Dock icon; it lives in your menu bar. Click the item to op
 - **Open at Login**: on by default.
 - **Quit**.
 
-The item shows <img src="docs/capsule-auto.png" height="20" alt="a soft capsule holding an AirPods symbol and a microphone symbol"> while Auto Switch is on, and fills in <img src="docs/capsule-manual.png" height="20" alt="a solid capsule with the same two symbols cut out of it"> when it's off.
+The item shows <img src="docs/capsule-auto.png" height="20" alt="a soft capsule holding an AirPods symbol and the DJI receiver's symbol"> while Auto Switch is on, and fills in <img src="docs/capsule-manual.png" height="20" alt="a solid capsule with the same two symbols cut out of it"> when it's off.
 
 From the keyboard: Tab moves between devices, Return uses one, and Option-Up and Option-Down change its rank. Esc closes the panel.
 
@@ -86,7 +86,7 @@ That device has no volume or level control of its own, so there's nothing to dra
 The DJI Mic Mini's receiver, by the name macOS gives it. It gets its own symbol.
 
 **How does it know my DJI mic is switched off?**
-The receiver broadcasts its state over USB several times a second: whether a mic is linked, its battery level and whether it's charging. Audio Priority only listens; it never sends the receiver anything. A mic that's off for more than three seconds is treated as away. If the receiver ever stops saying anything Audio Priority understands, such as after a firmware change, the mic is simply treated as on.
+The receiver broadcasts its state over USB several times a second: whether a mic is linked, its battery level and whether it's charging. Audio Priority only listens; it never sends the receiver anything. A mic that's off for more than three seconds is treated as away, and the input moves to the next microphone in your list. If the DJI mic was the one in use, it's used again when you switch it back on, unless you picked another microphone in the meantime. If the receiver ever stops saying anything Audio Priority understands, such as after a firmware change, the mic is simply treated as on.
 
 **Why is there no battery percentage for the DJI mic?**
 The receiver reports seven steps from full to nearly empty, not a percentage. The battery mark shows the step, and the row says "Low battery" at the last two.
@@ -95,7 +95,7 @@ The receiver reports seven steps from full to nearly empty, not a percentage. Th
 Quit the app and run `defaults delete com.racejohnson.audio-priority` in Terminal. The lists are rebuilt the next time it opens.
 
 **How do I uninstall it?**
-Open the panel, turn off **Open at Login** and click **Quit**. Then drag Audio Priority from Applications to the Trash.
+Open the panel, turn off **Open at Login** and click **Quit**. Then drag Audio Priority from Applications to the Trash. To remove its saved lists too, run `defaults delete com.racejohnson.audio-priority` in Terminal.
 
 ## For developers
 
@@ -103,12 +103,12 @@ It's a Swift package; there's no Xcode project.
 
 ```bash
 make run        # build a copy in .build and open it
-make test       # run the tests for the ranking and switching rules
+make test       # run the tests
 make dry-run    # run against your real devices without switching, saving or connecting anything
 make snapshot   # write pictures of the panel and menu-bar item to .build/snapshots
 make selftest   # open the real panel and drive it with synthetic clicks, as a dry run
-make readme     # redraw this page's pictures from made-up devices
-make icon       # rebuild the app icon from Icon/ (needs rsvg-convert)
+make readme     # redraw this page's pictures from made-up devices (needs rsvg-convert)
+make icon       # rebuild the app icon from Icon/ (needs rsvg-convert: brew install librsvg)
 ```
 
 Builds are signed ad hoc. **Open at Login** only works for the copy in Applications, so use `make install` to try it.
@@ -116,7 +116,7 @@ Builds are signed ad hoc. **Open at Login** only works for the copy in Applicati
 | Path | What |
 |---|---|
 | `Sources/AudioPriorityCore/` | No CoreAudio here. `SwitchEngine` decides what each role should be on; `PriorityStore` keeps the ranked lists and hidden devices; `DeviceGlyph` maps a device to its symbol; `DJIReceiverFeed` reads the DJI receiver's status |
-| `Sources/AudioPriority/` | The app: `AudioSystem` (CoreAudio), `Bluetooth`, `DJIReceiver` (USB, read-only), `AppModel`, the menu-bar item (`StatusItemController`, `Glyphs`) and the panel (`PanelController`, `PanelView`) |
+| `Sources/AudioPriority/` | The app: `AudioSystem` (CoreAudio), `Bluetooth`, `DJIReceiver` (USB, read-only), `AppModel`, the menu-bar item (`StatusItemController`, `Glyphs`) and the panel (`PanelController`, `PanelView`). `Snapshot`, `SelfTest` and `ReadmePictures` are the developer tools behind `make snapshot`, `make selftest` and `make readme` |
 | `Tests/AudioPriorityTests/` | The rules as tests: start here to see what the app promises |
 | `Icon/` | The app icon's drawings and build script |
 | `docs/` | This page's pictures, redrawn by `make readme` |

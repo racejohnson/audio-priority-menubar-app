@@ -45,6 +45,19 @@ final class AppModel {
     @ObservationIgnored private lazy var djiReceiver = DJIReceiver { [weak self] status in self?.transmitterChanged(status) }
     /// The UID of the DJI receiver's microphone, while it is plugged in.
     @ObservationIgnored private var djiMicrophoneUID: String?
+    /// A receiver has just appeared and has not yet said whether its
+    /// microphone is on. Switching waits a moment for it, so the input is not
+    /// moved onto a microphone that is off and straight off it again.
+    @ObservationIgnored private var djiIsSettling = false
+    /// The DJI microphone was the input when it was switched off, so it is
+    /// used again when it comes back, unless another input is chosen meanwhile.
+    @ObservationIgnored private var resumesDJI = false
+    @ObservationIgnored private var hasRefreshed = false
+    /// First launch: the devices in use are to be kept, once switching is first decided.
+    @ObservationIgnored private var keepsDevicesInUse = false
+    /// What each connect or disconnect in progress is waiting for, by Bluetooth address.
+    @ObservationIgnored private var connectingTo: [String: Bool] = [:]
+    @ObservationIgnored private var failureMarks: [String: UUID] = [:]
     /// Apple silicon models are all "MacNN,N", so a built-in battery is what tells a laptop apart.
     private static let hostIsLaptop = hasBuiltInBattery()
 
@@ -83,6 +96,8 @@ final class AppModel {
         var volume: [Role: Float]
         var bluetooth: [String: BluetoothDevice]
         var transmitters: [String: TransmitterStatus] = [:]
+        /// Not the real Mac's kind, so the pictures come out the same on a desktop.
+        var hostIsLaptop = true
     }
 
     /// Shows `demo` in place of the real devices. Dry run only, and in place
@@ -122,7 +137,7 @@ final class AppModel {
     }
 
     func glyph(for device: AudioDevice) -> GlyphKey {
-        DeviceGlyph.glyph(for: device, hostIsLaptop: Self.hostIsLaptop)
+        DeviceGlyph.glyph(for: device, hostIsLaptop: demo?.hostIsLaptop ?? Self.hostIsLaptop)
     }
 
     func battery(for device: AudioDevice) -> Battery? {
@@ -154,13 +169,7 @@ final class AppModel {
             return device.isConnected ? "Couldn’t disconnect" : "Couldn’t connect"
         }
         if !device.isConnected { return canConnect(device) ? "Paired · not connected" : "Not connected" }
-        if let status = transmitter(for: device) {
-            if !status.isLinked { return "DJI Mic Mini · Mic off" }
-            if status.isCharging { return "DJI Mic Mini · Charging" }
-            if status.isLow { return "DJI Mic Mini · Low battery" }
-            if status.gauge != nil { return "DJI Mic Mini" }
-        }
-        return DeviceGlyph.detail(for: device)
+        return DeviceGlyph.detail(for: device, transmitter: transmitter(for: device))
     }
 
     /// What the takeover banner says, if macOS is being left to have its way.
@@ -180,6 +189,9 @@ final class AppModel {
     func select(_ device: AudioDevice) {
         // A microphone that is switched off cannot be used until it is on again.
         if isMicOff(device) { return }
+        // A newer click replaces an earlier one that is still waiting for its device.
+        selectOnArrival = nil
+        if device.role == .input { resumesDJI = false }
         if device.isConnected {
             run(.userSelected(device.role, device.uid))
         } else if canConnect(device) {
@@ -196,24 +208,43 @@ final class AppModel {
             return
         }
         connecting.insert(address)
+        connectingTo[address] = connect
         failedToConnect.remove(address)
+        failureMarks[address] = nil
         Task {
             let succeeded = await Bluetooth.setConnected(connect, address: address)
-            connecting.remove(address)
             if !succeeded || !connect, selectOnArrival?.uid == device.uid { selectOnArrival = nil }
             scheduleRefresh()
             refreshBluetooth(after: .seconds(2))
-            if !succeeded {
+            if succeeded {
+                // The Bluetooth link is up, but the audio device takes a moment
+                // more to appear. The row keeps saying so until `refresh` sees
+                // it, or for ten seconds at most.
+                try? await Task.sleep(for: .seconds(10))
+                if connectingTo[address] == connect { finishConnecting(address) }
+            } else {
+                finishConnecting(address)
                 log("could not \(connect ? "connect" : "disconnect") \(device.name)")
-                // Say so on the row for a few seconds.
+                // Say so on the row for a few seconds, unless a newer attempt has its own say.
+                let mark = UUID()
+                failureMarks[address] = mark
                 failedToConnect.insert(address)
                 try? await Task.sleep(for: .seconds(5))
-                failedToConnect.remove(address)
+                if failureMarks[address] == mark {
+                    failedToConnect.remove(address)
+                    failureMarks[address] = nil
+                }
             }
         }
     }
 
+    private func finishConnecting(_ address: String) {
+        connecting.remove(address)
+        connectingTo[address] = nil
+    }
+
     func setAuto(_ on: Bool) {
+        resumesDJI = false
         store.auto = on
         auto = on
         run(.autoChanged(on))
@@ -301,18 +332,40 @@ final class AppModel {
             device.productID = device.bluetoothAddress.flatMap { bluetooth[$0]?.productID }
             return device
         }
-        // A Bluetooth device that just connected: its battery level is from last time.
-        if !Set(connected.compactMap(\.bluetoothAddress)).isSubset(of: bluetoothBefore) {
+        let bluetoothNow = Set(connected.compactMap(\.bluetoothAddress))
+        // A Bluetooth device that just connected: its battery level is from
+        // last time. Not at launch, when everything is new and `start` reads it anyway.
+        if hasRefreshed, !bluetoothNow.isSubset(of: bluetoothBefore) {
             refreshBluetooth(after: .seconds(3))
         }
+        hasRefreshed = true
+        // A connect or disconnect is over once the audio device has appeared or gone.
+        for (address, wantsConnected) in connectingTo where bluetoothNow.contains(address) == wantsConnected {
+            finishConnecting(address)
+        }
         if demo == nil {
-            djiMicrophoneUID = connected.first { $0.role == .input && DeviceGlyph.isDJIMic($0.name) }?.uid
-            djiReceiver.setWanted(djiMicrophoneUID != nil)
-            if djiMicrophoneUID == nil { transmitters = [:] }
+            let uid = connected.first { $0.role == .input && DeviceGlyph.isDJIMic($0.name) }?.uid
+            if uid != nil, djiMicrophoneUID == nil {
+                // A receiver has appeared: give it a second to say whether its microphone is on.
+                djiIsSettling = true
+                Task { [weak self] in
+                    try? await Task.sleep(for: .seconds(1))
+                    guard let self, self.djiIsSettling else { return }
+                    self.djiIsSettling = false
+                    self.refresh()
+                }
+            }
+            djiMicrophoneUID = uid
+            djiReceiver.setWanted(uid != nil)
+            if uid == nil {
+                transmitters = [:]
+                djiIsSettling = false
+                resumesDJI = false
+            }
         }
         readCurrent()
-        let isFirstLaunch = store.isEmpty
-        if isFirstLaunch {
+        if store.isEmpty {
+            keepsDevicesInUse = true
             // First launch: the devices in use now go to the top of their
             // lists, so starting the app changes as little as possible.
             let inUse = connected.filter { current[$0.role] == $0.uid }
@@ -321,7 +374,13 @@ final class AppModel {
             store.register(connected)
         }
         rebuild()
-        if isFirstLaunch {
+        guard !djiIsSettling else {
+            // The lists and levels are shown; the switching waits.
+            syncVolume()
+            return
+        }
+        if keepsDevicesInUse {
+            keepsDevicesInUse = false
             // Headphones rank above speakers, so a speaker in use is not at
             // the top of the output list. Keeping it as a pick leaves it be.
             for role in Role.allCases {
@@ -346,14 +405,29 @@ final class AppModel {
         guard demo == nil else { return }
         var new: [String: TransmitterStatus] = [:]
         if let uid = djiMicrophoneUID, let status { new[uid] = status }
-        guard new != transmitters else { return }
+        let wasSettling = djiIsSettling
+        if status != nil { djiIsSettling = false }
+        guard new != transmitters || wasSettling != djiIsSettling else { return }
         let wasOff = transmitters.values.contains { !$0.isLinked }
         transmitters = new
         let isOff = new.values.contains { !$0.isLinked }
-        guard isOff != wasOff else { return }
-        log(isOff ? "the DJI microphone is switched off" : "the DJI microphone is back")
-        // Its going off or coming back is a device leaving or arriving.
-        run(.systemChanged)
+        if isOff, !wasOff {
+            log("the DJI microphone is switched off")
+            resumesDJI = current[.input] == djiMicrophoneUID
+        } else if wasOff, !isOff {
+            log(status == nil ? "the DJI receiver went quiet, so its microphone is treated as on" : "the DJI microphone is back")
+        }
+        if wasSettling, !djiIsSettling {
+            // The receiver's first word: now the switching can be decided.
+            refresh()
+        } else if wasOff, !isOff, status != nil, resumesDJI, let uid = djiMicrophoneUID {
+            // It was in use when it went off, so it is used again.
+            resumesDJI = false
+            run(.userSelected(.input, uid))
+        } else if isOff != wasOff {
+            // Its going off or coming back is a device leaving or arriving.
+            run(.systemChanged)
+        }
     }
 
     private func readCurrent() {
@@ -385,7 +459,7 @@ final class AppModel {
             }),
             current: current,
             now: Self.now,
-            userPicking: event == .systemChanged && SystemSoundPicker.isInUse
+            userPicking: demo == nil && event == .systemChanged && SystemSoundPicker.isInUse
         )
         for command in engine.handle(event, input) {
             let id = DeviceID(command.role, command.uid)
@@ -400,9 +474,13 @@ final class AppModel {
         }
         readCurrent()
         takeover = engine.takeover
+        syncVolume()
+        schedulePauseEnd()
+    }
+
+    private func syncVolume() {
         audio.watchVolume(of: Role.allCases.compactMap { currentDevice($0)?.id })
         readVolume()
-        schedulePauseEnd()
     }
 
     private func schedulePauseEnd() {

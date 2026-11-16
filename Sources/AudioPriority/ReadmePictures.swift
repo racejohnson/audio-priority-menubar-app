@@ -49,7 +49,7 @@ enum ReadmePictures {
         // 1. AirPods in, the DJI microphone held.
         model.show(withAirPods)
         shoot(dark: false)
-        save(chip(shots[0].capsule), to: folder.appendingPathComponent("capsule-auto.png"))
+        if let shot = shots.last { save(chip(shot.capsule), to: folder.appendingPathComponent("capsule-auto.png")) }
 
         // 2. The AirPods are away: the speakers take over and the AirPods wait, paired.
         model.show(AppModel.Demo(
@@ -64,7 +64,7 @@ enum ReadmePictures {
         model.setAuto(false)
         if let phone = (model.devices[.input] ?? []).first(where: { $0.uid == "iphone" }) { model.setHidden(true, phone) }
         shoot(dark: true)
-        save(chip(shots[2].capsule), to: folder.appendingPathComponent("capsule-manual.png"))
+        if let shot = shots.last { save(chip(shot.capsule), to: folder.appendingPathComponent("capsule-manual.png")) }
 
         save(hero(shots), to: folder.appendingPathComponent("panel.png"))
         print("Wrote the README's pictures to \(folder.path)")

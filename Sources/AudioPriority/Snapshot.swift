@@ -4,7 +4,7 @@ import SwiftUI
 
 /// `--snapshot <folder>`: pictures of the panel and the capsule drawn from the
 /// Mac's real devices, without showing a window. For checking the look after
-/// a change; best run as a dry run, so nothing is switched or saved.
+/// a change. Dry run only, so nothing is switched or saved.
 @MainActor
 enum Snapshot {
     static func write(model: AppModel, to folder: URL) {

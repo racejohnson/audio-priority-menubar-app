@@ -22,9 +22,12 @@ final class DJIReceiver: @unchecked Sendable {
     private static let staleAfter: TimeInterval = 3
 
     private let onChange: @MainActor @Sendable (TransmitterStatus?) -> Void
+    /// Guards everything below it.
     private let lock = NSLock()
     private var isWanted = false
     private var thread: Thread?
+    /// The last status handed on. The outer optional is "nothing handed on yet".
+    private var published: TransmitterStatus??
 
     init(onChange: @escaping @MainActor @Sendable (TransmitterStatus?) -> Void) {
         self.onChange = onChange
@@ -43,61 +46,86 @@ final class DJIReceiver: @unchecked Sendable {
         thread.start()
     }
 
-    /// Whether to keep going; clears the thread when not, under the same lock
-    /// `setWanted` starts one under.
+    /// Whether the calling thread is still the listener and still wanted. When
+    /// it is no longer wanted it steps down here, under the same lock a new
+    /// one is started under, so there is never more than one.
     private func shouldContinue() -> Bool {
         lock.lock()
         defer { lock.unlock() }
-        if !isWanted { thread = nil }
+        guard thread === Thread.current else { return false }
+        if !isWanted {
+            thread = nil
+            // The next receiver to be plugged in starts from nothing known.
+            published = nil
+        }
         return isWanted
     }
 
-    private var published: TransmitterStatus??
-
     private func publish(_ status: TransmitterStatus?) {
-        guard published != .some(status) else { return }
-        published = .some(status)
+        lock.lock()
+        let isNews = thread === Thread.current && published != .some(status)
+        if isNews { published = .some(status) }
+        lock.unlock()
+        guard isNews else { return }
         Task { @MainActor [onChange] in onChange(status) }
     }
 
+    private var lastPublishedIsOff: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        if case .some(.some(let status)) = published { return !status.isLinked }
+        return false
+    }
+
     private func run() {
+        var isFirstSession = true
+        var silentSessions = 0
         while shouldContinue() {
-            listen()
-            publish(nil)
-            // The receiver was unplugged, the Mac slept, or the pipe failed: try again shortly.
+            let heardStatus = listen(isFirstSession: isFirstSession)
+            isFirstSession = false
+            // A session ends when the Mac sleeps or the pipe hiccups, and the
+            // next one usually picks straight up. Only after several with
+            // nothing heard is the microphone's state unknown.
+            silentSessions = heardStatus ? 0 : silentSessions + 1
+            if silentSessions >= 3 { publish(nil) }
             if shouldContinue() { Thread.sleep(forTimeInterval: 2) }
         }
     }
 
     /// Reads until the receiver goes away or listening is no longer wanted.
-    private func listen() {
+    /// True if the receiver said anything about its microphone.
+    private func listen(isFirstSession: Bool) -> Bool {
         let matching = IOUSBHostInterface.__createMatchingDictionary(
             withVendorID: Self.vendorID as NSNumber, productID: Self.productID as NSNumber, bcdDevice: nil,
             interfaceNumber: Self.interfaceNumber as NSNumber, configurationValue: 1,
             interfaceClass: nil, interfaceSubclass: nil, interfaceProtocol: nil, speed: nil, productIDArray: nil
         ).takeRetainedValue()
         let service = IOServiceGetMatchingService(kIOMainPortDefault, matching)
-        guard service != 0 else { return }
+        guard service != 0 else { return false }
         defer { IOObjectRelease(service) }
-        // No options: the interface is shared, not seized.
-        guard let interface = try? IOUSBHostInterface(__ioService: service, options: [], queue: nil, interestHandler: nil) else { return }
+        // No options: the interface is opened without seizing it from macOS's accessory service.
+        guard let interface = try? IOUSBHostInterface(__ioService: service, options: [], queue: nil, interestHandler: nil) else { return false }
         defer { interface.destroy() }
-        guard let pipe = try? interface.copyPipe(withAddress: Self.pipeAddress) else { return }
+        guard let pipe = try? interface.copyPipe(withAddress: Self.pipeAddress),
+              let buffer = NSMutableData(length: 1024) else { return false }
 
         var feed = DJIReceiverFeed()
+        var heardStatus = false
         var lastStatus = Date()
-        var offSince: Date?
-        guard let buffer = NSMutableData(length: 1024) else { return }
+        // The grace is for a link that drops. A microphone that is already off
+        // when the app starts, or was off before this session, is reported at once.
+        var offSince: Date? = isFirstSession || lastPublishedIsOff ? .distantPast : nil
         while shouldContinue() {
             var count = 0
             do {
                 try pipe.__sendIORequest(with: buffer, bytesTransferred: &count, completionTimeout: 1)
             } catch {
                 // A quiet second is not a failure; anything else ends this session.
-                guard UInt32(truncatingIfNeeded: (error as NSError).code) == 0xE000_02D6 else { return }
+                guard UInt32(truncatingIfNeeded: (error as NSError).code) == 0xE000_02D6 else { return heardStatus }
             }
             let now = Date()
             if count > 0, feed.consume(Data(referencing: buffer).prefix(count)) {
+                heardStatus = true
                 lastStatus = now
                 if feed.status?.isLinked == false {
                     offSince = offSince ?? now
@@ -110,5 +138,6 @@ final class DJIReceiver: @unchecked Sendable {
                 publish(nil)
             }
         }
+        return heardStatus
     }
 }

@@ -10,6 +10,9 @@ public struct Settings: Codable, Equatable, Sendable {
     public var known: [String: KnownDevice] = [:]
     public var auto = true
     public var launchAtLogin = true
+    /// The app has added itself to Login Items, so finding itself gone from
+    /// them means the user took it out in System Settings.
+    public var loginItemRegistered = false
 
     public init() {}
 
@@ -22,6 +25,7 @@ public struct Settings: Codable, Equatable, Sendable {
         known = try values.decodeIfPresent([String: KnownDevice].self, forKey: .known) ?? [:]
         auto = try values.decodeIfPresent(Bool.self, forKey: .auto) ?? true
         launchAtLogin = try values.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? true
+        loginItemRegistered = try values.decodeIfPresent(Bool.self, forKey: .loginItemRegistered) ?? false
     }
 }
 
@@ -160,5 +164,14 @@ public final class PriorityStore {
     public var launchAtLogin: Bool {
         get { settings.launchAtLogin }
         set { settings.launchAtLogin = newValue; save() }
+    }
+
+    public var loginItemRegistered: Bool {
+        get { settings.loginItemRegistered }
+        set {
+            guard newValue != settings.loginItemRegistered else { return }
+            settings.loginItemRegistered = newValue
+            save()
+        }
     }
 }

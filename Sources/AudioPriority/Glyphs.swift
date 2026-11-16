@@ -8,13 +8,17 @@ import SwiftUI
 enum Glyphs {
     /// A template image for `key` at `pointSize`. System symbols come at the
     /// given weight; the DJI glyph is drawn to sit beside them.
-    static func image(_ key: GlyphKey, pointSize: CGFloat, weight: NSFont.Weight) -> NSImage {
+    /// `monochrome` draws a symbol in one flat ink. Some, such as the laptop,
+    /// otherwise shade their screens, which the capsule's cut-out cannot follow.
+    static func image(_ key: GlyphKey, pointSize: CGFloat, weight: NSFont.Weight, monochrome: Bool = false) -> NSImage {
         switch key {
         case .symbol(let name):
             let image = NSImage(systemSymbolName: name, accessibilityDescription: nil)
                 ?? NSImage(systemSymbolName: "speaker.wave.2.fill", accessibilityDescription: nil)
                 ?? NSImage()
-            return image.withSymbolConfiguration(.init(pointSize: pointSize, weight: weight)) ?? image
+            var configuration = NSImage.SymbolConfiguration(pointSize: pointSize, weight: weight)
+            if monochrome { configuration = configuration.applying(.preferringMonochrome()) }
+            return image.withSymbolConfiguration(configuration) ?? image
         case .djiMicMini:
             // The glyph's 18-unit box, sized so its body matches a symbol's cap height.
             return djiMicMini(size: (pointSize * 1.5).rounded(), small: pointSize <= 11)
@@ -66,7 +70,7 @@ enum Glyphs {
         let size = CGSize(width: 58, height: 22)
         let slot: CGFloat = 21, padding: CGFloat = 5.5, middle: CGFloat = 5
         // The DJI glyph keeps its bolder menu-bar cut at this size.
-        let glyphs = [output, input].map { $0 == .djiMicMini ? djiMicMini(size: 18, small: true) : image($0, pointSize: 13, weight: .semibold) }
+        let glyphs = [output, input].map { $0 == .djiMicMini ? djiMicMini(size: 18, small: true) : image($0, pointSize: 13, weight: .semibold, monochrome: true) }
         let capsule = Bitmap.draw(width: size.width, height: size.height) { context in
             let shell = CGPath(roundedRect: CGRect(origin: .zero, size: size), cornerWidth: size.height / 2, cornerHeight: size.height / 2, transform: nil)
             context.setFillColor(CGColor(gray: 0, alpha: isManual ? 1 : 0.16))

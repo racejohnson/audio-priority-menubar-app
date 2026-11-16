@@ -4,8 +4,8 @@ import Foundation
 /// CoreAudio: every call is given what the Mac looks like now and returns the
 /// switches to make, so the rules can be tested as plain values.
 ///
-/// The rules are those of Audio Priority Bar by Camille Guillory and Tobias
-/// Lütke (GPL-3.0), rewritten for this app's smaller scope:
+/// The rules are those of Audio Priority Bar by Camille Guillory, which
+/// continues AudioPriorityBar by Tobias Lütke (both GPL-3.0), rewritten for this app's smaller scope:
 ///
 /// - Auto on: each role uses the first connected, visible device in its list.
 /// - A device the user picks stays until it disconnects or a device ranked

@@ -326,4 +326,40 @@ private struct Mac {
         mac.now += 600; mac.current[.output] = "airpods"
         #expect(mac.send(.systemChanged, to: &engine) == [.init(.output, "speakers")])
     }
+
+    /// A wireless microphone that is switched off stays the Mac's default: its
+    /// receiver is still plugged in. To the engine it has left, but macOS has
+    /// not moved the input.
+    @Test func aDeviceThatLeavesWhileStillTheDefaultIsMovedOffAndBack() {
+        var mac = Mac()
+        var engine = SwitchEngine(auto: true)
+        mac.send(.systemChanged, to: &engine)
+
+        mac.inputs.removeAll { $0 == "dji" }
+        #expect(mac.send(.systemChanged, to: &engine) == [.init(.input, "airpods-mic")])
+        mac.inputs.append("dji")
+        #expect(mac.send(.systemChanged, to: &engine) == [.init(.input, "dji")])
+    }
+
+    @Test func autoOffADeviceThatLeavesWhileStillTheDefaultFallsToTheList() {
+        var mac = Mac(current: [.output: "speakers", .input: "mac-mic"])
+        var engine = SwitchEngine(auto: false)
+        mac.send(.systemChanged, to: &engine)
+
+        mac.inputs.removeAll { $0 == "mac-mic" }
+        #expect(mac.send(.systemChanged, to: &engine) == [.init(.input, "dji")])
+        // Back again, it is not returned to by the engine; the app asks for that itself.
+        mac.inputs.append("mac-mic")
+        #expect(mac.send(.systemChanged, to: &engine) == [])
+        #expect(mac.send(.userSelected(.input, "mac-mic"), to: &engine) == [.init(.input, "mac-mic")])
+        #expect(engine.held[.input] == "mac-mic")
+    }
+
+    @Test func theOnlyDeviceLeavingWhileStillTheDefaultChangesNothing() {
+        var mac = Mac(inputs: ["dji"], order: [.output: ["airpods", "speakers"], .input: ["dji"]])
+        var engine = SwitchEngine(auto: true)
+        mac.send(.systemChanged, to: &engine)
+        mac.inputs = []
+        #expect(mac.send(.systemChanged, to: &engine) == [])
+    }
 }

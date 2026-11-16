@@ -50,10 +50,15 @@ public struct DJIReceiverFeed: Sendable {
                 continue
             }
             guard stream.count >= length else { break }
+            // Checked before anything is taken: a false start must cost one
+            // byte, not the real frames that follow it.
+            let stored = UInt16(stream[length - 2]) | UInt16(stream[length - 1]) << 8
+            guard Self.crc16(stream[0..<(length - 2)]) == stored else {
+                stream.removeFirst()
+                continue
+            }
             let frame = Array(stream[0..<length])
             stream.removeFirst(length)
-            let stored = UInt16(frame[length - 2]) | UInt16(frame[length - 1]) << 8
-            guard Self.crc16(frame[0..<(length - 2)]) == stored else { continue }
             // Command set 0x5B, command 0x03: the status push.
             guard frame[9] == 0x5B, frame[10] == 0x03 else { continue }
             if read(status: frame[11..<(length - 2)]) { sawStatus = true }
@@ -63,35 +68,45 @@ public struct DJIReceiverFeed: Sendable {
         return sawStatus
     }
 
-    /// The push is `03`, a two-byte length, then records of
+    /// The length of the receiver's own record and of a transmitter's, as
+    /// this layout has them. Any other length is a layout this code does not know.
+    private static let receiverRecordLength = 32, transmitterRecordLength = 26
+
+    /// The push is `03`, a two-byte length of what follows, then records of
     /// type (1), index (4, little-endian), length (1), value.
     private mutating func read(status payload: ArraySlice<UInt8>) -> Bool {
         let bytes = Array(payload)
-        guard bytes.count >= 3, bytes[0] == 0x03 else { return false }
-        var sawReceiver = false
+        guard bytes.count >= 3, bytes[0] == 0x03, Int(bytes[1]) | Int(bytes[2]) << 8 == bytes.count - 3 else { return false }
+        var mask: UInt8?
+        var seen: [Int: UInt32] = [:]
         var offset = 3
         while offset + 6 <= bytes.count {
             let type = bytes[offset], index = Int(bytes[offset + 1]), length = Int(bytes[offset + 5])
             let end = offset + 6 + length
-            guard end <= bytes.count else { break }
+            // A record that runs past the end, or an index beyond one byte, is not this layout.
+            guard end <= bytes.count, bytes[(offset + 2)...(offset + 4)].allSatisfy({ $0 == 0 }) else { return false }
             let value = bytes[(offset + 6)..<end]
             switch type {
-            case 0x03 where index == 0 && length >= 25:
+            case 0x03 where index == 0:
                 // The receiver's own record: byte 24 has one bit per linked transmitter.
-                let mask = value[value.startIndex + 24]
-                guard mask <= 0b11 else { return false }
-                linked = mask
-                sawReceiver = true
-            case 0x02 where (1...2).contains(index) && length >= 4:
+                guard length == Self.receiverRecordLength, value[value.startIndex + 24] <= 0b11 else { return false }
+                mask = value[value.startIndex + 24]
+            case 0x02 where (1...2).contains(index):
+                guard length == Self.transmitterRecordLength else { return false }
                 let start = value.startIndex
-                words[index] = UInt32(value[start]) | UInt32(value[start + 1]) << 8
+                seen[index] = UInt32(value[start]) | UInt32(value[start + 1]) << 8
                     | UInt32(value[start + 2]) << 16 | UInt32(value[start + 3]) << 24
             default:
                 break
             }
             offset = end
         }
-        return sawReceiver
+        // Nothing is kept from a push unless all of it read cleanly.
+        guard offset == bytes.count else { return false }
+        words.merge(seen) { $1 }
+        guard let mask else { return false }
+        linked = mask
+        return true
     }
 
     // MARK: Checksums

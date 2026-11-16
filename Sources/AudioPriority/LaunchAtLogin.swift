@@ -51,7 +51,7 @@ final class LaunchAtLogin {
 
     /// Registers or unregisters to match the stored wish. A dry run leaves the login item alone.
     func sync() {
-        guard !isDryRun else { return }
+        guard !isDryRun, !adoptRemoval() else { return }
         let registered = service.status == .enabled || service.status == .requiresApproval
         do {
             if isEnabled, !registered {
@@ -59,6 +59,7 @@ final class LaunchAtLogin {
             } else if !isEnabled, registered {
                 try service.unregister()
             }
+            store.loginItemRegistered = service.status == .enabled || service.status == .requiresApproval
             refresh()
         } catch {
             // The status often explains the failure better than the error does.
@@ -69,7 +70,20 @@ final class LaunchAtLogin {
         }
     }
 
+    /// The app had added itself and is no longer in Login Items: the user
+    /// removed it in System Settings. That is their answer, so the switch
+    /// goes off, and the app does not add itself back at the next launch.
+    private func adoptRemoval() -> Bool {
+        guard isEnabled, store.loginItemRegistered, service.status == .notRegistered else { return false }
+        isEnabled = false
+        store.launchAtLogin = false
+        store.loginItemRegistered = false
+        issue = nil
+        return true
+    }
+
     func refresh() {
+        guard !adoptRemoval() else { return }
         guard isEnabled else {
             issue = nil
             return

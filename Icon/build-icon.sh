@@ -2,7 +2,7 @@
 # Builds AppResources/Assets.car and AppResources/AppIcon.icns from the drawings in this folder.
 #
 #   AppIcon.svg        the 1024 master (tile, shadow, rim), used from 64 px up
-#   AppIcon-small.svg  the three-segment drawing on a 32 grid, used at 16 and 32
+#   AppIcon-small.svg  a simpler drawing with fewer, larger segments on a 32 grid, used at 16 and 32
 #   AppIcon-bleed.svg  the master without shadow, clip or rim, framed on the tile (for Icon Composer)
 #
 # Needs rsvg-convert (brew install librsvg) and Xcode's actool.

@@ -89,4 +89,58 @@ import Testing
         #expect(!saw5)
         #expect(feed.status == nil)
     }
+
+    @Test func aFalseStartDoesNotSwallowTheFrameAfterIt() {
+        var feed = DJIReceiverFeed()
+        // Four bytes that pass as a header and claim more than follows them.
+        let claimed = Self.captured.count + 4
+        var header: [UInt8] = [0x55, UInt8(claimed & 0xFF), 0x04 | UInt8(claimed >> 8)]
+        header.append(DJIReceiverFeed.crc8(header))
+        let sawStatus = feed.consume(header + Self.captured)
+        #expect(sawStatus)
+        #expect(feed.status?.isLinked == true)
+    }
+
+    /// The captured frame with a first transmitter's record added after the second's.
+    private static func twoTransmitters(mask: UInt8, firstWord: [UInt8]) -> [UInt8] {
+        var frame = Array(captured.dropLast(2))
+        frame[maskOffset] = mask
+        frame += [0x02, 0x01, 0x00, 0x00, 0x00, 0x1a] + firstWord + [UInt8](repeating: 0, count: 22)
+        // The frame's own length, and the push's length of what follows it.
+        let length = frame.count + 2
+        frame[1] = UInt8(length & 0xFF)
+        frame[2] = 0x04 | UInt8(length >> 8)
+        frame[3] = DJIReceiverFeed.crc8(frame[0..<3])
+        frame[12] = UInt8(frame.count - 14)
+        let crc = DJIReceiverFeed.crc16(frame)
+        return frame + [UInt8(crc & 0xFF), UInt8(crc >> 8)]
+    }
+
+    @Test func withTwoTransmittersTheEmptierBatteryShows() {
+        var feed = DJIReceiverFeed()
+        // The first is at step 5 and not charging; the second, as captured, at step 1.
+        let sawStatus = feed.consume(Self.twoTransmitters(mask: 0b11, firstWord: [0x92, 0x15, 0x00, 0x00]))
+        #expect(sawStatus)
+        #expect(feed.status == TransmitterStatus(isLinked: true, isCharging: false, gauge: 5))
+    }
+
+    @Test func aTransmitterThatIsNoLongerLinkedIsIgnored() {
+        var feed = DJIReceiverFeed()
+        // Only the second is linked; the first's record lingers at step 5.
+        feed.consume(Self.twoTransmitters(mask: 0b10, firstWord: [0x92, 0x15, 0x00, 0x00]))
+        #expect(feed.status == TransmitterStatus(isLinked: true, isCharging: true, gauge: 1))
+    }
+
+    @Test func anUnfamiliarLayoutGivesNoStatus() {
+        // The push's own length does not match what follows.
+        var feed = DJIReceiverFeed()
+        let wrongLength = feed.consume(Self.frame(changing: [12: 0x40]))
+        #expect(!wrongLength)
+        #expect(feed.status == nil)
+        // The receiver's record is not the length this layout has.
+        var other = DJIReceiverFeed()
+        let wrongRecord = other.consume(Self.frame(changing: [19: 0x1f]))
+        #expect(!wrongRecord)
+        #expect(other.status == nil)
+    }
 }

@@ -9,7 +9,7 @@ struct PanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if !model.auto { Banner(text: "Auto Switch is off. Devices stay where you put them.") }
+            if !model.auto { Banner(text: "Auto Switch is off. Devices stay put.") }
             if let note = model.takeoverNote { Banner(text: note) }
 
             VStack(spacing: 8) {
@@ -190,6 +190,8 @@ private struct Footer: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(.tint)
                 .help(model.showsHidden ? "Put the hidden devices away" : "Show the hidden devices")
+                .accessibilityLabel("\(hidden) hidden device\(hidden == 1 ? "" : "s")")
+                .accessibilityValue(model.showsHidden ? "showing" : "not showing")
             }
             Spacer()
             Button("Quit") { NSApp.terminate(nil) }
@@ -255,10 +257,12 @@ private struct LevelSlider: View {
             return .handled
         }
         .accessibilityRepresentation {
-            Slider(value: Binding(get: { Double(level ?? 0) }, set: { model.setVolume(Float($0), role) })) {
+            // The same sixteenth the arrow keys and the volume keys step by.
+            Slider(value: Binding(get: { Double(level ?? 0) }, set: { model.setVolume(Float($0), role) }), in: 0...1, step: 1.0 / 16) {
                 Text(role == .output ? "Output volume, \(device?.name ?? "no output")" : "Input level, \(device?.name ?? "no microphone")")
             }
             .disabled(level == nil)
+            .accessibilityHint(level == nil && device != nil ? "\(device?.name ?? "") has no \(role == .output ? "volume" : "input level") control of its own" : "")
         }
         // The name in full, since a long one is cut short in the slider.
         .help(device.map { level == nil ? "\($0.name) has no \(role == .output ? "volume" : "input level") control of its own" : $0.name } ?? "")
@@ -396,11 +400,18 @@ private struct DeviceRow: View {
 
     @State private var isHovering = false
     @FocusState private var isFocused: Bool
+    @FocusState private var menuIsFocused: Bool
 
     var body: some View {
         let isCurrent = model.isCurrent(device)
         let isHidden = model.isHidden(device)
         let isDimmed = isHidden || !device.isConnected || model.isMicOff(device)
+        // Dimmed less on the filled row, where white at 42% would be hard to read.
+        let dim: Double = isDimmed ? (isCurrent ? 0.7 : 0.42) : 1
+        // ⋯ shows while the pointer is on the row, or the keyboard is.
+        let showsActions = !isHidden && (isHovering || isFocused || menuIsFocused)
+        // Whether choosing the row would do anything.
+        let canUse = isCurrent || (!isHidden && !model.isMicOff(device) && (device.isConnected || model.canConnect(device)))
         HStack(spacing: 8) {
             Text(rank.map(String.init) ?? "")
                 .font(.system(size: 11))
@@ -412,30 +423,31 @@ private struct DeviceRow: View {
                 .foregroundStyle(isCurrent ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
                 .frame(width: 26, height: 26)
                 .background(Circle().fill(isCurrent ? AnyShapeStyle(.white.opacity(0.24)) : AnyShapeStyle(.primary.opacity(0.075))))
-                .opacity(isDimmed ? 0.42 : 1)
+                .opacity(dim)
 
             VStack(alignment: .leading, spacing: 0) {
                 Text(device.name)
                     .font(.system(size: 13, weight: isCurrent ? .semibold : .medium))
                     .lineLimit(1)
-                    .help(device.name)
                 detail
                     .font(.system(size: 11))
                     .foregroundStyle(isCurrent ? AnyShapeStyle(.white.opacity(0.8)) : AnyShapeStyle(.secondary))
                     .lineLimit(1)
             }
             .foregroundStyle(isCurrent ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
-            .opacity(isDimmed ? 0.42 : 1)
+            .opacity(dim)
 
             Spacer(minLength: 2)
             trailing(isHidden: isHidden)
-                // Room for ⋯ only while it shows, so a long name gets the full row at rest.
-                .padding(.trailing, isHovering && !isHidden ? 22 : 0)
+            // Room for ⋯ only while it shows, so a long name gets the full row at rest.
+            if showsActions { Color.clear.frame(width: 14, height: 1) }
         }
-        .padding(.horizontal, 8)
+        // The right edge lines up with the headings, rules and switches.
+        .padding(.leading, 8)
+        .padding(.trailing, 10)
         .frame(height: Self.height)
         .overlay(alignment: .trailing) {
-            if !isHidden { actions(isCurrent: isCurrent).padding(.trailing, 8) }
+            if !isHidden { actions(isCurrent: isCurrent, isShown: showsActions).padding(.trailing, 8) }
         }
         .background {
             let shape = RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -449,10 +461,17 @@ private struct DeviceRow: View {
         }
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
-        .onTapGesture { if !isHidden { model.select(device) } }
+        .onTapGesture {
+            // A click focuses the row; let go, so its fill does not outstay the pointer.
+            isFocused = false
+            if !isHidden { model.select(device) }
+        }
+        // One tooltip for the whole row: the reason it cannot be used, what a
+        // click does, or the name in full when it is cut short.
         .help(
-            model.isMicOff(device) ? "The receiver is plugged in, but the microphone is switched off"
-                : model.canConnect(device) && !isHidden ? "Click to connect and use \(device.name)" : ""
+            isHidden ? device.name
+                : model.isMicOff(device) ? "The receiver is plugged in, but the microphone is switched off"
+                : model.canConnect(device) ? "Click to connect and use \(device.name)" : device.name
         )
         .contextMenu { DeviceMenu(model: model, device: device) }
         .focusable(!isHidden)
@@ -461,6 +480,7 @@ private struct DeviceRow: View {
         // reads as a stray border. A focused row takes the hover fill instead.
         .focusEffectDisabled()
         .onKeyPress(keys: [.return, .space]) { _ in
+            guard canUse else { return .ignored }
             model.select(device)
             return .handled
         }
@@ -472,29 +492,44 @@ private struct DeviceRow: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(spokenLabel(isCurrent: isCurrent, isHidden: isHidden))
-        // What the ⋯ menu offers, for VoiceOver's actions rotor.
+        // What the ⋯ menu offers besides Use (which is the row's own action),
+        // for VoiceOver's actions rotor.
         .accessibilityActions {
             if isHidden {
                 Button("Show") { model.setHidden(false, device) }
             } else {
+                if device.transport == .bluetooth, device.bluetoothAddress != nil, !model.isConnecting(device) {
+                    Button(device.isConnected ? "Disconnect" : "Connect") { model.setConnected(!device.isConnected, device) }
+                }
                 if model.canMove(device, by: -1) { Button("Move Up") { model.move(device, by: -1) } }
                 if model.canMove(device, by: 1) { Button("Move Down") { model.move(device, by: 1) } }
+                if device.role == .output {
+                    let other: DeviceCategory = device.category == .headphones ? .speakers : .headphones
+                    Button(other == .headphones ? "Rank with Headphones" : "Rank with Speakers") { model.setCategory(other, device) }
+                }
                 Button("Hide") { model.setHidden(true, device) }
             }
         }
-        .accessibilityAddTraits(isCurrent ? [.isButton, .isSelected] : .isButton)
+        // Only a row that can be chosen is a button.
+        .accessibilityAddTraits(isCurrent ? [.isButton, .isSelected] : canUse || isHidden ? .isButton : [])
     }
 
     private func spokenLabel(isCurrent: Bool, isHidden: Bool) -> String {
         let battery = device.isConnected && !isHidden && !model.isConnecting(device) ? model.battery(for: device)?.text : nil
-        let state = if isHidden {
-            "hidden"
-        } else if isCurrent {
-            "in use" + (battery.map { ", battery \($0)" } ?? "")
+        var parts = [device.name]
+        if isHidden {
+            parts.append("hidden")
         } else {
-            battery.map { "battery \($0)" } ?? model.detail(for: device)
+            if isCurrent { parts.append("in use") }
+            if let battery {
+                parts.append("battery \(battery)")
+            } else if !isCurrent || model.transmitter(for: device) != nil {
+                // A wireless microphone's state (charging, low battery, mic off) is said even when in use.
+                parts.append(model.detail(for: device))
+            }
         }
-        return "\(device.name), \(state)\(rank.map { ", rank \($0)" } ?? "")"
+        if let rank { parts.append("rank \(rank)") }
+        return parts.joined(separator: ", ")
     }
 
     @ViewBuilder private var detail: some View {
@@ -525,7 +560,7 @@ private struct DeviceRow: View {
     }
 
     /// The ⋯ button, which shows while the pointer is on the row.
-    private func actions(isCurrent: Bool) -> some View {
+    private func actions(isCurrent: Bool, isShown: Bool) -> some View {
             Menu {
                 DeviceMenu(model: model, device: device)
             } label: {
@@ -539,7 +574,8 @@ private struct DeviceRow: View {
             .menuIndicator(.hidden)
             .fixedSize()
             .foregroundStyle(isCurrent ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary))
-            .opacity(isHovering ? 1 : 0)
+            .opacity(isShown ? 1 : 0)
+            .focused($menuIsFocused)
             .help("Actions for \(device.name)")
             .accessibilityLabel("Actions for \(device.name)")
     }

@@ -41,7 +41,6 @@ public enum DeviceGlyph {
         switch device.transport {
         case .builtIn: return .symbol(hostIsLaptop ? "laptopcomputer" : "desktopcomputer")
         case .displayPort: return .symbol("display")
-        case .thunderbolt where device.role == .output: return .symbol("display")
         case .hdmi: return .symbol("tv")
         case .airPlay: return .symbol("airplayaudio")
         default: break
@@ -53,15 +52,23 @@ public enum DeviceGlyph {
         }
     }
 
-    /// The second line of a connected device's row.
-    public static func detail(for device: AudioDevice) -> String {
-        isDJIMic(device.name) ? "DJI Mic Mini · \(device.transport.label)" : device.transport.label
+    /// The second line of a connected device's row. `transmitter` is what a
+    /// wireless microphone's receiver says about its microphone, when known.
+    public static func detail(for device: AudioDevice, transmitter: TransmitterStatus? = nil) -> String {
+        guard isDJIMic(device.name) else { return device.transport.label }
+        let name = "DJI Mic Mini"
+        guard let transmitter else { return "\(name) · \(device.transport.label)" }
+        if !transmitter.isLinked { return "\(name) · Mic off" }
+        if transmitter.isCharging { return "\(name) · Charging" }
+        if transmitter.isLow { return "\(name) · Low battery" }
+        // With a battery mark beside it, the name is enough.
+        return transmitter.gauge == nil ? "\(name) · \(device.transport.label)" : name
     }
 }
 
 /// Decides whether an output is headphones when the device does not say so
-/// itself. The keyword list is from Audio Priority Bar by Camille Guillory and
-/// Tobias Lütke (GPL-3.0).
+/// itself. The keyword list is from Audio Priority Bar by Camille Guillory,
+/// which continues AudioPriorityBar by Tobias Lütke (both GPL-3.0).
 public enum HeadphoneDetection {
     private static let keywords = [
         "headphone", "headset", "earphone", "earbud", "earbuds", "buds", "pods",
