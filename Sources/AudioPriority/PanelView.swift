@@ -400,7 +400,7 @@ private struct DeviceRow: View {
     var body: some View {
         let isCurrent = model.isCurrent(device)
         let isHidden = model.isHidden(device)
-        let isDimmed = isHidden || !device.isConnected
+        let isDimmed = isHidden || !device.isConnected || model.isMicOff(device)
         HStack(spacing: 8) {
             Text(rank.map(String.init) ?? "")
                 .font(.system(size: 11))
@@ -450,6 +450,7 @@ private struct DeviceRow: View {
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
         .onTapGesture { if !isHidden { model.select(device) } }
+        .help(model.isMicOff(device) ? "The receiver is plugged in, but the microphone is switched off" : "")
         .contextMenu { DeviceMenu(model: model, device: device) }
         .focusable(!isHidden)
         .focused($isFocused)
@@ -494,7 +495,9 @@ private struct DeviceRow: View {
     }
 
     @ViewBuilder private var detail: some View {
-        if device.isConnected, !model.isHidden(device), !model.isConnecting(device),
+        if !model.isHidden(device), let status = model.transmitter(for: device) {
+            transmitterDetail(status)
+        } else if device.isConnected, !model.isHidden(device), !model.isConnecting(device),
            let battery = model.battery(for: device), let text = battery.text {
             HStack(spacing: 3) {
                 Image(systemName: Self.batterySymbol(battery.lowest ?? 100))
@@ -541,6 +544,22 @@ private struct DeviceRow: View {
             .accessibilityLabel("Actions for \(device.name)")
     }
 
+    /// The second line of a wireless microphone's row: a battery mark for the
+    /// receiver's seven steps (it gives no percentage), and what it is doing.
+    @ViewBuilder
+    private func transmitterDetail(_ status: TransmitterStatus) -> some View {
+        let isLow = status.isLinked && status.isLow && !status.isCharging
+        HStack(spacing: 3) {
+            if status.isLinked, let percent = status.estimatedPercent {
+                Image(systemName: status.isCharging ? "battery.100percent.bolt" : Self.batterySymbol(percent))
+                    .font(.system(size: 10))
+            }
+            Text(model.detail(for: device))
+        }
+        // Yellow reads on the filled row of the microphone in use; orange elsewhere.
+        .foregroundStyle(isLow ? AnyShapeStyle(model.isCurrent(device) ? Color.yellow : Color.orange) : AnyShapeStyle(.foreground))
+    }
+
     private static func batterySymbol(_ level: Int) -> String {
         switch level {
         case ..<13: "battery.0percent"
@@ -563,7 +582,7 @@ private struct DeviceMenu: View {
         } else {
             let isCurrent = model.isCurrent(device)
             Button(isCurrent ? "In Use" : "Use") { model.select(device) }
-                .disabled(isCurrent || !(device.isConnected || model.canConnect(device)))
+                .disabled(isCurrent || model.isMicOff(device) || !(device.isConnected || model.canConnect(device)))
             if device.transport == .bluetooth, device.bluetoothAddress != nil {
                 Button(device.isConnected ? "Disconnect" : "Connect") { model.setConnected(!device.isConnected, device) }
                     .disabled(model.isConnecting(device))

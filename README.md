@@ -28,6 +28,7 @@ Audio Priority fixes the order once. It sits in your menu bar with two lists, on
 - **See it at a glance.** The menu-bar item shows the device you hear on the left and your microphone on the right.
 - **Hide what you never use.** A hidden device is never chosen for you and keeps its place in the list.
 - **Bluetooth from the panel.** Paired devices stay listed while they're off. Click one to connect and use it. AirPods show each bud's battery.
+- **Knows when a DJI mic is off.** A DJI Mic Mini's receiver stays plugged in when you switch the mic off. Audio Priority notices, moves to your next microphone, and comes back when the mic is on again. Its row shows the battery.
 - **Private.** No account, no tracking, and it never connects to the internet.
 
 ## Install
@@ -84,6 +85,12 @@ That device has no volume or level control of its own, so there's nothing to dra
 **What's "Wireless Mic Rx"?**
 The DJI Mic Mini's receiver, by the name macOS gives it. It gets its own symbol.
 
+**How does it know my DJI mic is switched off?**
+The receiver broadcasts its state over USB several times a second: whether a mic is linked, its battery level and whether it's charging. Audio Priority only listens; it never sends the receiver anything. A mic that's off for more than three seconds is treated as away. If the receiver ever stops saying anything Audio Priority understands, such as after a firmware change, the mic is simply treated as on.
+
+**Why is there no battery percentage for the DJI mic?**
+The receiver reports seven steps from full to nearly empty, not a percentage. The battery mark shows the step, and the row says "Low battery" at the last two.
+
 **How do I start over?**
 Quit the app and run `defaults delete com.racejohnson.audio-priority` in Terminal. The lists are rebuilt the next time it opens.
 
@@ -108,8 +115,8 @@ Builds are signed ad hoc. **Open at Login** only works for the copy in Applicati
 
 | Path | What |
 |---|---|
-| `Sources/AudioPriorityCore/` | No CoreAudio here. `SwitchEngine` decides what each role should be on; `PriorityStore` keeps the ranked lists and hidden devices; `DeviceGlyph` maps a device to its symbol |
-| `Sources/AudioPriority/` | The app: `AudioSystem` (CoreAudio), `Bluetooth`, `AppModel`, the menu-bar item (`StatusItemController`, `Glyphs`) and the panel (`PanelController`, `PanelView`) |
+| `Sources/AudioPriorityCore/` | No CoreAudio here. `SwitchEngine` decides what each role should be on; `PriorityStore` keeps the ranked lists and hidden devices; `DeviceGlyph` maps a device to its symbol; `DJIReceiverFeed` reads the DJI receiver's status |
+| `Sources/AudioPriority/` | The app: `AudioSystem` (CoreAudio), `Bluetooth`, `DJIReceiver` (USB, read-only), `AppModel`, the menu-bar item (`StatusItemController`, `Glyphs`) and the panel (`PanelController`, `PanelView`) |
 | `Tests/AudioPriorityTests/` | The rules as tests: start here to see what the app promises |
 | `Icon/` | The app icon's drawings and build script |
 | `docs/` | This page's pictures, redrawn by `make readme` |
@@ -121,5 +128,7 @@ Left out on purpose: profiles, a mute hotkey, Shortcuts, URL commands, notificat
 ## License
 
 [GPL-3.0](LICENSE). The switching rules, the headphone keyword list and the Control Center check are from [Audio Priority Bar](https://github.com/camguillory/Audio-Priority-Bar) by Camille Guillory, itself a continuation of [AudioPriorityBar](https://github.com/tobi/AudioPriorityBar) by Tobias Lütke, both GPL-3.0. This app is a smaller rewrite of those rules, not a fork: the code here is new, and the files that carry their logic say so. `PanelController.swift` and `LaunchAtLogin.swift` are from [DayNight](https://github.com/racejohnson/daynight-menubar-app), by the same author.
+
+The DJI receiver's status format was worked out by others and is read here from their notes: [lavdeck](https://github.com/piedol/lavdeck) by piedol, [DJI-Mic-Control](https://github.com/ShadowBitBasher/DJI-Mic-Control) by ShadowBitBasher and [HaloBattery](https://github.com/HeyOkay/HaloBattery) by HeyOkay. The code here is new.
 
 The app icon's direction came from the equalizer icon of [audio-priority](https://github.com/mateusbadalotti/audio-priority) by Mateus Badalotti; the drawing is new. Audio Priority is an independent project, not affiliated with or endorsed by Apple or DJI.

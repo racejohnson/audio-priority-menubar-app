@@ -16,6 +16,8 @@ final class AppModel {
     private(set) var volume: [Role: Float] = [:]
     private(set) var auto: Bool
     private(set) var bluetooth: [String: BluetoothDevice] = [:]
+    /// What each wireless microphone's receiver says about its transmitter, by device UID.
+    private(set) var transmitters: [String: TransmitterStatus] = [:]
     /// Bluetooth addresses being connected or disconnected right now.
     private(set) var connecting: Set<String> = []
     /// Bluetooth addresses whose last connect or disconnect just failed.
@@ -39,6 +41,10 @@ final class AppModel {
     /// later did so for some other reason.
     @ObservationIgnored private var selectOnArrivalEnds: TimeInterval = 0
     @ObservationIgnored private var demo: Demo?
+    /// Listens to a DJI receiver while one is plugged in.
+    @ObservationIgnored private lazy var djiReceiver = DJIReceiver { [weak self] status in self?.transmitterChanged(status) }
+    /// The UID of the DJI receiver's microphone, while it is plugged in.
+    @ObservationIgnored private var djiMicrophoneUID: String?
     /// Apple silicon models are all "MacNN,N", so a built-in battery is what tells a laptop apart.
     private static let hostIsLaptop = hasBuiltInBattery()
 
@@ -76,6 +82,7 @@ final class AppModel {
         var current: [Role: String]
         var volume: [Role: Float]
         var bluetooth: [String: BluetoothDevice]
+        var transmitters: [String: TransmitterStatus] = [:]
     }
 
     /// Shows `demo` in place of the real devices. Dry run only, and in place
@@ -84,6 +91,7 @@ final class AppModel {
         guard isDryRun else { return }
         self.demo = demo
         bluetooth = demo.bluetooth
+        transmitters = demo.transmitters
         refresh()
     }
 
@@ -121,6 +129,15 @@ final class AppModel {
         device.bluetoothAddress.flatMap { bluetooth[$0]?.battery }
     }
 
+    func transmitter(for device: AudioDevice) -> TransmitterStatus? {
+        device.role == .input && device.isConnected ? transmitters[device.uid] : nil
+    }
+
+    /// The receiver is plugged in but its microphone is switched off.
+    func isMicOff(_ device: AudioDevice) -> Bool {
+        transmitter(for: device)?.isLinked == false
+    }
+
     func isConnecting(_ device: AudioDevice) -> Bool {
         device.bluetoothAddress.map(connecting.contains) ?? false
     }
@@ -137,6 +154,12 @@ final class AppModel {
             return device.isConnected ? "Couldn’t disconnect" : "Couldn’t connect"
         }
         if !device.isConnected { return canConnect(device) ? "Paired · not connected" : "Not connected" }
+        if let status = transmitter(for: device) {
+            if !status.isLinked { return "DJI Mic Mini · Mic off" }
+            if status.isCharging { return "DJI Mic Mini · Charging" }
+            if status.isLow { return "DJI Mic Mini · Low battery" }
+            if status.gauge != nil { return "DJI Mic Mini" }
+        }
         return DeviceGlyph.detail(for: device)
     }
 
@@ -155,6 +178,8 @@ final class AppModel {
     // MARK: What the user can do
 
     func select(_ device: AudioDevice) {
+        // A microphone that is switched off cannot be used until it is on again.
+        if isMicOff(device) { return }
         if device.isConnected {
             run(.userSelected(device.role, device.uid))
         } else if canConnect(device) {
@@ -280,6 +305,11 @@ final class AppModel {
         if !Set(connected.compactMap(\.bluetoothAddress)).isSubset(of: bluetoothBefore) {
             refreshBluetooth(after: .seconds(3))
         }
+        if demo == nil {
+            djiMicrophoneUID = connected.first { $0.role == .input && DeviceGlyph.isDJIMic($0.name) }?.uid
+            djiReceiver.setWanted(djiMicrophoneUID != nil)
+            if djiMicrophoneUID == nil { transmitters = [:] }
+        }
         readCurrent()
         let isFirstLaunch = store.isEmpty
         if isFirstLaunch {
@@ -311,6 +341,21 @@ final class AppModel {
         run(.systemChanged)
     }
 
+    /// The DJI receiver said something new about its microphone, or went quiet (nil).
+    private func transmitterChanged(_ status: TransmitterStatus?) {
+        guard demo == nil else { return }
+        var new: [String: TransmitterStatus] = [:]
+        if let uid = djiMicrophoneUID, let status { new[uid] = status }
+        guard new != transmitters else { return }
+        let wasOff = transmitters.values.contains { !$0.isLinked }
+        transmitters = new
+        let isOff = new.values.contains { !$0.isLinked }
+        guard isOff != wasOff else { return }
+        log(isOff ? "the DJI microphone is switched off" : "the DJI microphone is back")
+        // Its going off or coming back is a device leaving or arriving.
+        run(.systemChanged)
+    }
+
     private func readCurrent() {
         for role in Role.allCases { current[role] = demo.map { $0.current[role] } ?? audio.defaultDevice(role) }
     }
@@ -332,10 +377,11 @@ final class AppModel {
     private func run(_ event: SwitchEngine.Event) {
         let input = SwitchEngine.Input(
             ranking: Dictionary(uniqueKeysWithValues: Role.allCases.map { role in
-                (role, (devices[role] ?? []).filter { $0.isConnected && !isHidden($0) }.map(\.uid))
+                (role, (devices[role] ?? []).filter { $0.isConnected && !isHidden($0) && !isMicOff($0) }.map(\.uid))
             }),
             connected: Dictionary(uniqueKeysWithValues: Role.allCases.map { role in
-                (role, Set(connected.filter { $0.role == role }.map(\.uid)))
+                // To the rules, a microphone that is switched off has left.
+                (role, Set(connected.filter { $0.role == role && !isMicOff($0) }.map(\.uid)))
             }),
             current: current,
             now: Self.now,

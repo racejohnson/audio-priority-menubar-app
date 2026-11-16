@@ -33,7 +33,8 @@ enum ReadmePictures {
         }
         let withAirPods = AppModel.Demo(
             connected: airPods + others, current: [.output: "\(uid):output", .input: "dji"],
-            volume: [.output: 0.55, .input: 0.8], bluetooth: bluetooth(connected: true)
+            volume: [.output: 0.55, .input: 0.8], bluetooth: bluetooth(connected: true),
+            transmitters: ["dji": TransmitterStatus(isLinked: true, gauge: 2)]
         )
         var shots: [Shot] = []
         func shoot(dark: Bool) {
@@ -53,7 +54,8 @@ enum ReadmePictures {
         // 2. The AirPods are away: the speakers take over and the AirPods wait, paired.
         model.show(AppModel.Demo(
             connected: others, current: [.output: "speakers", .input: "dji"],
-            volume: [.output: 0.4, .input: 0.8], bluetooth: bluetooth(connected: false)
+            volume: [.output: 0.4, .input: 0.8], bluetooth: bluetooth(connected: false),
+            transmitters: ["dji": TransmitterStatus(isLinked: true, gauge: 2)]
         ))
         shoot(dark: false)
 
