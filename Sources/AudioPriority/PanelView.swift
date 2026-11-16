@@ -450,7 +450,10 @@ private struct DeviceRow: View {
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
         .onTapGesture { if !isHidden { model.select(device) } }
-        .help(model.isMicOff(device) ? "The receiver is plugged in, but the microphone is switched off" : "")
+        .help(
+            model.isMicOff(device) ? "The receiver is plugged in, but the microphone is switched off"
+                : model.canConnect(device) && !isHidden ? "Click to connect and use \(device.name)" : ""
+        )
         .contextMenu { DeviceMenu(model: model, device: device) }
         .focusable(!isHidden)
         .focused($isFocused)
@@ -518,9 +521,6 @@ private struct DeviceRow: View {
             .buttonStyle(PillButtonStyle())
         } else if model.isConnecting(device) {
             ProgressView().controlSize(.small)
-        } else if model.canConnect(device) {
-            Button("Connect") { model.select(device) }
-                .buttonStyle(PillButtonStyle())
         }
     }
 
@@ -549,15 +549,19 @@ private struct DeviceRow: View {
     @ViewBuilder
     private func transmitterDetail(_ status: TransmitterStatus) -> some View {
         let isLow = status.isLinked && status.isLow && !status.isCharging
-        HStack(spacing: 3) {
+        let line = HStack(spacing: 3) {
             if status.isLinked, let percent = status.estimatedPercent {
                 Image(systemName: status.isCharging ? "battery.100percent.bolt" : Self.batterySymbol(percent))
                     .font(.system(size: 10))
             }
             Text(model.detail(for: device))
         }
-        // Yellow reads on the filled row of the microphone in use; orange elsewhere.
-        .foregroundStyle(isLow ? AnyShapeStyle(model.isCurrent(device) ? Color.yellow : Color.orange) : AnyShapeStyle(.foreground))
+        if isLow {
+            // Yellow reads on the filled row of the microphone in use; orange elsewhere.
+            line.foregroundStyle(model.isCurrent(device) ? Color.yellow : Color.orange)
+        } else {
+            line
+        }
     }
 
     private static func batterySymbol(_ level: Int) -> String {
